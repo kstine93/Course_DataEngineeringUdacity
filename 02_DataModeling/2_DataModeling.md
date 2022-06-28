@@ -51,9 +51,13 @@ Data modeling is the process of working out how data will flow - and be stored -
 - **Generally use SQL for accessing data and interacting with the database system**
 
 **When to use RDBMS**
-- Ability to combine data across multiple tables
+- Ability to combine data across multiple tables (joins)
 - Ability to do aggregations & analytics
-- Ability to do ad hoc queries allows you to change business requirements relatively easily (e.g., adding new tables, columns)
+- Ability to do ad hoc queries allows you to change business requirements relatively easily (e.g., adding new tables, columns, querying something you didn't expect)
+  - NoSQL doesn't allow just any type of querying - you have to know how you will query from the beginning.
+- ACID is enforced, meaning that subsequent queries always have the most up-to-date information (NoSQL databases are consistent eventually, but prioritize speed over isolation)
+  - **NOTE: MongoDB is one exception that can support ACID transactions**
+    - MongoDB
 
 ### Non-relational DBs
 - Non-relational databases are (typically) distributed databases. They can store information across multiple machines. This is in contrast to a RDBMS where all records have to 'live' under a single roof.
@@ -61,5 +65,34 @@ Data modeling is the process of working out how data will flow - and be stored -
 - Enforcing ACID is sub-otptimal for runtime. Non-relational doesn't enforce ACID, and so can run faster.
 - Records can differ from one another in Non-relational (i.e., they can have different rows)
 
-## PostgreSQL
-- PostgreSQL is an open-source version of SQL.
+**Types of Non-relation (NoSQL) databases**
+- Apache Cassandra
+  - Data is still organized in rows + columns, but the tables are **partitioned** across multiple nodes.
+- MongoDB
+  - Data is organized as documents (independent files). Querying can search for titles of documents *as well as the contents of those documents.*
+    - MongoDB's document structure essentially means that records are stored completely in one hierarchical JSON-like structure like this:
+    ![image](media/mongodb_doc.png)
+    - [MongoDB ACID White Paper](https://webassets.mongodb.com/MongoDB_Multi_Doc_Transactions.pdf?_ga=2.221758296.1324186602.1656439253-1203746384.1656439251)
+- DynamoDB
+  - "Key-value store"
+    - So basically like a Dict/JSON?
+- Apache HBase
+  - "Wide Column Store"
+  - Also uses tables, rows + columns, but the columns can vary between rows (kind of like independent entries)
+- Neo4J
+  - "Graph Database"
+  - Somehow focuses on relationships between data (not sure what exactly this means yet)
+
+### Introduction to Apache Cassandra
+**Glossary**
+- Keyspace = collection of tables
+- Table = group of partitions
+- Partition = Collection of rows
+- Primary key = Partition key (which partition) and chosen uniquely-identifying "clustering column(s)"
+- Row = a single 'item' (?)
+
+**Helpful links**
+- [Keys + Clustering Cols in Cassandra](https://www.bmc.com/blogs/cassandra-clustering-columns-partition-composite-key/)
+  - Notes:
+    - Cassandra sorts by clustering columns (for fast retrieval)
+    - Cassandra is specifically optimized for *writing* data

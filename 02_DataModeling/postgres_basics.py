@@ -1,3 +1,7 @@
+'''
+Example code for working with a Postgres database in Python
+'''
+
 
 #psycopg2 is a Postgres "adapter" for Python
 #https://pypi.org/project/psycopg2/
