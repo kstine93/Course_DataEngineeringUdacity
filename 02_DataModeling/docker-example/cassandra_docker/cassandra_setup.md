@@ -31,3 +31,10 @@ NEXT STEPS:
 I think the example I was using was a little to focused on mysql. Didn't really give me the tools to adapt to use Cassandra.
 However, I can quickly get started with Cassandra by using a custom tutorial. Try this one and see where that gets you:
 https://cassandra.apache.org/_/quickstart.html
+
+### Create Cassandra Image
+
+`sudo docker run --rm -d --name cassandra --hostname cassandra --network cassandra_net cassandra`
+
+### Create Files
+

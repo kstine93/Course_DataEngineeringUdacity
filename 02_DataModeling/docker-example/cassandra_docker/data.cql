@@ -10,9 +10,5 @@ CREATE TABLE IF NOT EXISTS store.cart (
 );
 
 -- Insert data
-INSERT INTO store.shopping_cart
-(userid, quantity, last_update)
-VALUES ('0001',2,toTimeStamp(now()));
-INSERT INTO store.shopping_cart
-(userid, quantity, last_update)
-VALUES ('0002',4,toTimeStamp(now()));
+INSERT INTO store.cart (userid, quantity, last_update) VALUES ('0001',2,toTimeStamp(now()));
+INSERT INTO store.cart (userid, quantity, last_update) VALUES ('0002',4,toTimeStamp(now()));

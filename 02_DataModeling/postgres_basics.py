@@ -8,6 +8,17 @@ Example code for working with a Postgres database in Python
 import psycopg2
 from psycopg2 import sql
 
+'''
+Note: It's possible to iterate over the results of your query
+kind of like a Python generator. We can apparently configure psycopg2 to
+return data from the SQL server in batches.
+Default behavior is returning all results to memory, but this would obviously
+be bad in the case of lots of data.
+Read more here about how to configure this so we can iterate nicely over
+SQL query results:
+https://stackoverflow.com/questions/41797720/whats-psycopg2-doing-when-i-iterate-a-cursor
+'''
+
 
 #==SETUP==#
 host = "127.0.0.1"

@@ -48,6 +48,8 @@ Data modeling is the process of working out how data will flow - and be stored -
 - Unique keys identify each row
 - a single row can be thought of as a Tuple (ordered set of data)
 - Generally each table represents a SINGLE entity type (makes the RDBMS more scalable, generally)
+- Data model is standardized (you know what the data will look like without needing to query it first)
+- Flexible in adding / altering tables
 - **Generally use SQL for accessing data and interacting with the database system**
 
 **When to use RDBMS**
@@ -96,3 +98,89 @@ Data modeling is the process of working out how data will flow - and be stored -
   - Notes:
     - Cassandra sorts by clustering columns (for fast retrieval)
     - Cassandra is specifically optimized for *writing* data
+
+---
+## Relational Data Models
+**Terms**
+- Fact / dimension tables
+- OLAP queris vs. OLTP queries
+  - OLAP queres= Online Analytical Processing; databases optimized for **reading**. These databases allow complex aggregations
+    - e.g. "How many customers from Bruges visited our site between 9:00 and 12:00 yesterday?"
+  - OLTP queries = Online Transactional Processing; databases optimized for "less complex queries in large volume"
+    - e.g. "What's the price of the new Nike Jordans in our shop?"
+
+### Relational Database Normalization / Denormalization
+- Normalization vs. denormalization
+  - Normalization = Reducing data redundancy, improving integrity
+  - Denormalization = Making data redundant, improving query response time
+#### Normal Forms (First, Second Third)
+
+**First Normal Form (1NF)**
+- Each cell contains unique and single values
+  - e.g., a table with a cell "kevin_stine_DataEngineer" is storing first name, last name, and profession in a single cell. This violates 1NF.
+- Be able to add data without altering tables
+  - (I'm a bit unclear on what this one means)
+- Separate different relations into different tables
+  - e.g., if you have n songs for an album (1:many relationship of unknown length), it's better to make another table for songs rather than storing a list of songs as a column in the album table.
+
+**Second Normal Form (2NF)**
+- Have 1NF
+- Has no 'partial dependencies' - for example, in the table below, 'Teacher Age' is dependent on 'Teacher ID', but 'Teacher Age' cannot be used as a key value (since it could be non-unique). This table needs to be split - so that Teacher ID is in 2 tables with subject and age respectively.
+
+<img src = "media/2NF_badtable.png" width = "50%" height = "auto"/>
+
+
+**Third Normal Form (3NF)**
+- Have 2NF
+- Doesn't have 'transitive dependencies'
+  - e.g. if A is dependent on B and B is dependent on C, A is transitively dependent on C.
+  - In the following example, Zip code is dependent on employee ID. But then State and country are dependent on Zip code, therefore state and country are dependong on employee ID - which doesn't make much sense.
+
+<img src = "media/3NF_badtable.png" width = "50%" height = "auto"/>
+
+#### Denormalization
+Denormalization is the reversal of the normalization tradeoffs. Normalization minimizes redundancy and optimizes data integrity, at the cost of performance (table joins are expensive; data can only be read from 1 place). Denormalization re-introduces redundancy to make querying faster, although maintaining data integrity becomes more difficult.
+
+A basic example of denormalization is where we notice that 2 tables are being joined for most of the queries we do, so we decide to duplicate data across those 2 tables so that our queries can just use 1 table.
+
+`Note: There wasn't much explanation in the course about how to do this in a sustainable way. However, it seems clear that the extent to which you decide to de-normalize should (a) be dependent on the exact queries you want to optimize and (b) come with a plan for maintaining data integrity (which becomes more complicated in de-normalized tables`
+
+### Fact & Dimension Tables
+Fact & dimension tables are created the same as other tables in the DDL when the database schema is created, but are used differently from each other
+
+**Fact Tables**
+Fact tables represent **static information** about the relationships between tables.
+For example, the table below shows that specific Orders were made on a certain date, with certain products, and certain quantities. These data will not change - these things happened. This is in contrast to *dimension tables* which give us useful information about these relationships (e.g., the name of the product, the cost of the product, etc.).
+
+| Date_id | Store_id | Product_id | Product_quantity |
+| --- | --- | --- | --- |
+| 1023454 | 001 | 02993 | 23 |
+| 1023332 | 001 | 02991 | 6 |
+
+**Dimension Tables**
+Dimension tables give us the additional information we need to make sense of the fact table. For example, we can JOIN the fact table to the 'store' dimension table to give us more information about the store's location
+
+| Store_id | Creation_date_id
+| --- | --- | --- | --- |
+| 1023454 | 001 | 02993 | 23 |
+| 1023332 | 001 | 02991 | 6 |
+
+#### Star Schema
+A star schema is a type of database modeling where a single fact table exists at the center of multiple dimension tables (in a star-like shape). The entire database can be made out of multiple 'stars'
+i.e., A single fact table is used as the reference for all dimension tables.
+
+![image](media/star_schema.png)
+
+`Notes: Star schemas are apparently 'de-normalized', but I don't see that yet. Is it because things like the 'Customer Dimension' above where we have transitive dependencies (i.e., city dependent on zip, zip dependent on customer)? If so, then why not still split those into other tables? Do star schemas not allow intermediate tables (i.e., EVERYTHING MUST be connected to star schema)?`
+
+#### Snowflake Schema
+A snowflake schema is an extension of the star schema. Related to the star schema:
+- Snowflake schemas can represent 1:n (one-to-many) relationships
+- Snowflake schemas can be more normalized (but sometimes still not 3NF)
+
+![image](media/snowflake_schema.png)
+
+**Extra Reading**
+- [Codd's 12 Rules on what makes databases relational](https://en.wikipedia.org/wiki/Codd%27s_12_rules)
+  - Note: Not really sure yet how these rules are applied / discussed practically - seems more granular than ACID.
+
