@@ -42,6 +42,9 @@ def create_all_tables(cur, conn):
         conn.commit()
 
 def drop_all_tables(cur, conn):
+    """
+    Dropping all tables listed in 'tables' list from sql_queries.py. 
+    """
     
     for tbl in tables:
         query = sql.SQL(generic_table_drop).format(
@@ -68,9 +71,6 @@ def main():
     
     drop_all_tables(cur, conn)
     create_all_tables(cur, conn)
-
-    #end_postgres_session(conn)
-
 
 if __name__ == "__main__":
     main()

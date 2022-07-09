@@ -5,7 +5,6 @@ tables = ['songplays','users','songs','artists','time']
 
 # CREATE TABLES
 
-#Note: It's possible that 'level' has a finite list of possible values - is it worth only allowing those values?
 songplay_table_create = ("""
     CREATE TABLE songplays
     (songplay_id SERIAL PRIMARY KEY,
@@ -64,6 +63,9 @@ create_table_queries = [songplay_table_create, user_table_create, song_table_cre
 generic_table_insert = """INSERT INTO {table} ({attributes}) VALUES (~values~)"""
 
 def format_insert_with_values(query,num_values):
+    """Helper function to dynamically insert string interpolation characters - allows
+    the generic_table_insert above to by used dynamically
+    """
     #Adds the placeholder '%s' values that can be used to dynamically insert values
     return query.replace("~values~",", ".join(['%s']*num_values))
 
