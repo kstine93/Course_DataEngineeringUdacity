@@ -93,11 +93,23 @@ Data modeling is the process of working out how data will flow - and be stored -
 - Primary key = Partition key (which partition) and chosen uniquely-identifying "clustering column(s)"
 - Row = a single 'item' (?)
 
+Apache Cassandra is a distributed database. It runs on a group of 'nodes' (VMs, servers, docker containers) and parts of the data are distributed across these nodes.
+
+Additionally, in order to ensure uptime, data is not only *distributed* across nodes, but also *replicated* to a certain extent - safeguarding against the eventuality that nodes will go down occasionally.
+
+This system of having data replicated across multiple nodes means that it's not possible to update data in all locations simultaneously. So an UPDATE or INSERT statement might affect one node immediately, but it will take time for that change to be reflected across all copies of the data across all nodes. This is called **Eventual Consistency**.
+
+**Eventual Consistency**
+  - 'If no new updates are made to a given data item, eventually all accesses to that item will **eventually** return the last updated value (but maybe not **immediately**).
+    - Note: So it takes a moment to update all of the nodes? In that case, it's just how long that takes which determines if it's practically cause for concern.
+
 **Helpful links**
 - [Keys + Clustering Cols in Cassandra](https://www.bmc.com/blogs/cassandra-clustering-columns-partition-composite-key/)
   - Notes:
     - Cassandra sorts by clustering columns (for fast retrieval)
     - Cassandra is specifically optimized for *writing* data
+- [How to understand Cassandra Architecture](https://docs.datastax.com/en/archived/cassandra/3.0/cassandra/architecture/archTOC.html)
+- [Tutorialspoint - Cassandra Architecture](https://www.tutorialspoint.com/cassandra/cassandra_architecture.htm)
 
 ---
 ## Relational Data Models
@@ -160,7 +172,7 @@ For example, the table below shows that specific Orders were made on a certain d
 **Dimension Tables**
 Dimension tables give us the additional information we need to make sense of the fact table. For example, we can JOIN the fact table to the 'store' dimension table to give us more information about the store's location
 
-| Store_id | Creation_date_id
+| Store_id | Creation_date_id | Customer_Id | Order_quantity |
 | --- | --- | --- | --- |
 | 1023454 | 001 | 02993 | 23 |
 | 1023332 | 001 | 02991 | 6 |
@@ -184,3 +196,9 @@ A snowflake schema is an extension of the star schema. Related to the star schem
 - [Codd's 12 Rules on what makes databases relational](https://en.wikipedia.org/wiki/Codd%27s_12_rules)
   - Note: Not really sure yet how these rules are applied / discussed practically - seems more granular than ACID.
 
+---
+
+## NON-Relational Data Models
+
+### Denormalization
+In relational databases, you can de-normalize the data (as in star schemas) to optimize certain types of querying.
