@@ -85,6 +85,19 @@ Data modeling is the process of working out how data will flow - and be stored -
   - "Graph Database"
   - Somehow focuses on relationships between data (not sure what exactly this means yet)
 
+### CAP Theorem
+The CAP Theorem (or Brewer's Theorem) says that in a partitioned system, there is a trade-off between consistency and availability, where:
+- Consistency = Every read receives the most recent write OR an error
+- Availability = Every request receives a non-error response, but it's not guaranteed it's the most recent write
+  
+Note: I think this is because partitioned systems that can be reading and writing to multiple copies of the data simultaneously. When a read request comes in, the system can either choose to prioritize **eventual consistency** (i.e., making sure the system is entirely updated) or **availability** (i.e., returning the local value- without waiting for confirmation from the rest of the system that this value is the most up-to-date).
+
+*Note from Udacity instructor: the tradeoff between consistency and availability is most relevant for partitioned (vs. non-partitioned) systems because partitioned systems can experience network failure between nodes. In these situations, the node being queried must decide whether to give errors until the connection is re-established or to give the local values, which may not be consistent.*
+
+The PACELC Theorem expanded on CAP by noting that even in the absence of a partitioned systems, a trade-off exists between consistency and **latency** (not sure what this really looks like in a traditional SQL DBS though - maybe since most of them are designed to never sacrifice consistency)
+
+*Interesting note: Blockchain technology prioritizes availability- by requiring a certain number of 'confirmations', but not waiting for confirmations from all systems*
+
 ### Introduction to Apache Cassandra
 **Glossary**
 - Keyspace = collection of tables
@@ -109,6 +122,17 @@ This system of having data replicated across multiple nodes means that it's not 
     - Cassandra sorts by clustering columns (for fast retrieval)
     - Cassandra is specifically optimized for *writing* data
 - [How to understand Cassandra Architecture](https://docs.datastax.com/en/archived/cassandra/3.0/cassandra/architecture/archTOC.html)
+  - Notes:
+    - Cassandra is setup to prioritize availability. Its distributed nature lowers the chance that the data being queried is unavailable (relative to non-distributed databases)
+    - The nodes communicate their state information on a regular basis (I'm guessing basic information is whether changes have been made or not). Note: In a distributed system, no comms might mean a lost connection OR no new information, so consistent communication even when no changes are registered might be required.
+    - Nodes maintain sequentially-written change logs
+    - Data is written to in-memory structures called 'memtables' which, when full, write to disk-based SSTable files.
+    - Cassandra periodically 'consolidates' SSTables through a process called compaction, discarding obsolete (overwritten?) data.
+    - Cassandra employs various repair mechanisms to ensure data across the cluster stays consistent.
+    - Cassandra is row-based, and rows are organized into tables and partitioned.
+    - **CASSANDRA DOES NOT ALLOW JOINS ON TABLES** Tables must be designed so that they satisfy the needs of queries on their own. New queries might mean creating entirely new tables (normalization is fully sacrificed)
+    - each node is capable of receiving requests. When one does, it assumes the role of **coordinator** and dictates how many other nodes are called.
+    - The 'replication factor' is a measure of how many times data is replicated across the system, where '2' means the data has exactly 2 copies
 - [Tutorialspoint - Cassandra Architecture](https://www.tutorialspoint.com/cassandra/cassandra_architecture.htm)
 
 ---
