@@ -104,6 +104,8 @@ The PACELC Theorem expanded on CAP by noting that even in the absence of a parti
 - Table = group of partitions
 - Partition = Collection of rows
 - Primary key = Partition key (which partition) and chosen uniquely-identifying "clustering column(s)"
+- **Partition key = responsible for data distribution across your nodes**
+- **Clustering key = responsible for data sorting within partitions**
 - Row = a single 'item' (?)
 
 Apache Cassandra is a distributed database. It runs on a group of 'nodes' (VMs, servers, docker containers) and parts of the data are distributed across these nodes.
@@ -115,6 +117,14 @@ This system of having data replicated across multiple nodes means that it's not 
 **Eventual Consistency**
   - 'If no new updates are made to a given data item, eventually all accesses to that item will **eventually** return the last updated value (but maybe not **immediately**).
     - Note: So it takes a moment to update all of the nodes? In that case, it's just how long that takes which determines if it's practically cause for concern.
+
+#### Denormalization in Apache Cassandra
+Because there are no joins in Apache Cassandra, denormalization (whereby you ensure that queries only have to use 1 table) is necessary. **So you need to consider queries first when designing your Apache Cassandra data model**
+
+Udacity Instructor: "One table per query is a good model"
+**Question:** Since we need to make a new table per query, there will be pressure to say "why don't we include *more* columns than we need for X query, just in case... How do we balance between adding ALL of the columns (covering every possible use case) and having so few columns that our tables can't adjust even for minor query changes?
+
+#### Cassandra Query Language (CQL)
 
 **Helpful links**
 - [Keys + Clustering Cols in Cassandra](https://www.bmc.com/blogs/cassandra-clustering-columns-partition-composite-key/)
@@ -133,6 +143,7 @@ This system of having data replicated across multiple nodes means that it's not 
     - **CASSANDRA DOES NOT ALLOW JOINS ON TABLES** Tables must be designed so that they satisfy the needs of queries on their own. New queries might mean creating entirely new tables (normalization is fully sacrificed)
     - each node is capable of receiving requests. When one does, it assumes the role of **coordinator** and dictates how many other nodes are called.
     - The 'replication factor' is a measure of how many times data is replicated across the system, where '2' means the data has exactly 2 copies
+    - Cassandra is particularly optimized for fast writes.
 - [Tutorialspoint - Cassandra Architecture](https://www.tutorialspoint.com/cassandra/cassandra_architecture.htm)
 
 ---

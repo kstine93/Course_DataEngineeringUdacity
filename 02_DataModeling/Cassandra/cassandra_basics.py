@@ -6,13 +6,13 @@ import pandas as pd
 import cassandra
 from cassandra.cluster import Cluster
 
-data = pd.read_csv('music_data.csv')
-print(data)
-
 #Note: I set up my docker-compose file to start cassandra and expose it at the following IP address + port.
 #On a production system, this address could simply be changed to the production database instance.
 cluster = Cluster(contact_points=['127.0.0.1'],port=9042)
 session = cluster.connect()
+
+data = pd.read_csv('music_data.csv')
+print(data)
 
 #Creating Keyspace
 try:
@@ -36,47 +36,80 @@ In Cassandra, it seems that if we want to group data by certain columns, we have
 So, if for example we want to use a 'WHERE year=1970', then year must be part of my primary (composite) key
 '''
 
-session.execute(
-    '''
-    CREATE TABLE IF NOT EXISTS music_data
-    (artist text,
-    album text,
-    PRIMARY KEY (artist,album))
-    '''
-)
+#Note: In the situation of a COMPOSITE primary key, the FIRST VALUE is the
+#"partition key" and the OTHER VALUES given are the "clustering keys"
+#You could also include multiple attributes as partition or clustering key
+#by making use of parentheses, e.g:
+'''PRIMARY KEY ((year, artist), album)'''
+#You need to take care when choosing your keys.
+#For PARTITION KEY(S), it's most helpful to choose a column where data is likely to be evenly distributed
+#Year could be a good partition key if we assume that whatever we're measuring is regular across years
+#Product ID could be a BAD partition key, since a new partition is created for every
+#product - so a company with 10,000 products would have 10,000 partitions.
 
+#For CLUSTERING KEY(S), you can only use them to filter data in the SAME ORDER AS THEY'RE USED FOR CLUSTERING
+#So, if you specify your clustering keys as "(year,artist)" then the statement
+#"...WHERE year = 1980 AND artist = 'Bon Jovi'" is CORRECT and the statement
+#"...WHERE artist = 'Bon Jovi'" is WRONG
+
+'''
+music_years
+- Intended to serve queries about years of music, possibly filtered by artist
+- SELECT * FROM music_years WHERE year=1970 AND artist='The Beatles'
+- Partition key: year
+- Clustering keys:
+    1. artist
+    2. album
+'''
 session.execute(
     '''
-    CREATE TABLE IF NOT EXISTS album_data
+    CREATE TABLE IF NOT EXISTS music_years
     (year int,
     artist text,
     album text,
-    PRIMARY KEY (year,artist,album))
+    PRIMARY KEY (year, artist, album))
     '''
 )
 
-music_insert = '''INSERT INTO music_data (artist,album) VALUES (%s, %s)'''
-album_insert = '''INSERT INTO album_data (year,artist,album) VALUES (%s, %s, %s)'''
+'''
+music_albums
+- Intended to search for the albums of specific artists, possibly filtering by year
+- SELECT * FROM music_years WHERE artist='The Beatles' AND year=1970
+- Partition key: artist
+- Clustering keys:
+    1. year
+    2. album
+'''
+session.execute(
+    '''
+    CREATE TABLE IF NOT EXISTS music_albums
+    (artist text,
+    year int,
+    album text,
+    PRIMARY KEY (artist,year, album))
+    '''
+)
+
+years_insert = '''INSERT INTO music_years (year,artist,album) VALUES (%s, %s, %s)'''
+album_insert = '''INSERT INTO music_albums (artist,year,album) VALUES (%s, %s, %s)'''
 
 #Note: Itertuples is much faster than iterrows
 #https://medium.com/swlh/why-pandas-itertuples-is-faster-than-iterrows-and-how-to-make-it-even-faster-bc50c0edd30d
 #even more so if we include 'name=None' (but this doesn't allow named indexing)
 for row in data.itertuples():
-    session.execute(music_insert,(row.artist_name,row.album_name))
-    session.execute(album_insert,(row.year,row.artist_name,row.album_name))
-#session.execute(insert_query,(1970,"The Beatles","Let it Be"))
-#session.execute(insert_query,(1965,"The Beatles","Rubber Soul"))
+    session.execute(years_insert,(row.year,row.artist_name,row.album_name))
+    session.execute(album_insert,(row.artist_name,row.year,row.album_name))
 
 queries = [
-    "SELECT * FROM album_data WHERE year=1965",
-    "SELECT * FROM music_data WHERE artist='The Beatles'"
+    "SELECT * FROM music_albums WHERE artist = 'The Monkees'",
+    "SELECT * FROM music_years WHERE year = 1965 AND artist='The Beatles'"
 ]
 for query in queries:
     result = session.execute(query)
     print(result.all())
 
-session.execute("DROP TABLE music_data")
-session.execute("DROP TABLE album_data")
+session.execute("DROP TABLE music_years")
+session.execute("DROP TABLE music_albums")
 
 session.shutdown()
 cluster.shutdown()

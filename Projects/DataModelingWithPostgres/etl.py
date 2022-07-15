@@ -9,7 +9,7 @@ from sql_queries import *
 
 #Helper Functions
 def insert_data_into_table(cur,table,attributes_arr,values_arr,query=generic_table_insert):
-    """Inserts into given values + given attributes into given Postgres table"""
+    """Inserts given values + given attributes into given Postgres table"""
     query = format_insert_with_values(query,len(values_arr))
     
     formatted_query = sql.SQL(query).format(
