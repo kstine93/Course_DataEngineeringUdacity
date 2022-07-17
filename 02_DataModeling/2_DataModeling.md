@@ -6,6 +6,7 @@ _Udacity - Data Engineering Nanodegree_
 - How to create relational data models using **Postgres SQL**
 - How to create Non-relational data models using **Apache Cassandra**
 
+---
 ### Database Management Systems (DBMS)
 - *[Intro to DBMS](https://www.geeksforgeeks.org/introduction-of-dbms-database-management-system-set-1/)*
   - Notes:
@@ -14,6 +15,7 @@ _Udacity - Data Engineering Nanodegree_
     - DML = "Data Manipulation Language", which is the language which deals in commands for working with the actual data
       - SELECT, INSERT, UPDATE, DELETE, MERGE, CALL, EXPLAIN PLAN, LOCK TABLE
 
+---
 ### ACID in database development
 #### Atomicity
 Transactions (e.g., writing, deleting) either completely **fail** or completely **succeed**. There is no possibility for only half of a job to succeed.
@@ -30,6 +32,7 @@ This involves database locking. Isolation ensures that two operations can NOT oc
 #### Durability
 Changes made to the system are persistent - there are measures in place (e.g., backups) to ensure that data, once inputted or altered, is not lost arbitrarily.
 
+---
 ## Data Modeling Overview
 Data modeling is the process of working out how data will flow - and be stored - in a particular application. Like other sorts of planning, this usually involves first gathering requirements and conceptually mapping (e.g., making a diagram) of the data flows in the application.
 
@@ -42,7 +45,10 @@ Data modeling is the process of working out how data will flow - and be stored -
 
 `Note: We can think about designing our data model to optimize for various use cases. A programmer might want to write to as few tables as possible for a particular transaction - to speed up the process. An analyst might also want all of their data in one place with as simple (or as adaptable) a query as possible. Also, we could try to think about how best to represent the data according to what real-world process we are actually trying to replicate / emulate (e.g., when setting up ecommerce, let's look at the order forms, warehouse, customers, etc. to see how this has been done non-digitally and see if we can replicate that digitally.`
 
+---
 ## Relational vs. Non-relational Databases
+
+---
 ### Relational DBs
 - Organizes data into tables with columns and rows
 - Unique keys identify each row
@@ -61,6 +67,7 @@ Data modeling is the process of working out how data will flow - and be stored -
   - **NOTE: MongoDB is one exception that can support ACID transactions**
     - MongoDB
 
+---
 ### Non-relational DBs
 - Non-relational databases are (typically) distributed databases. They can store information across multiple machines. This is in contrast to a RDBMS where all records have to 'live' under a single roof.
 - Whereas RDBMS' can only add complexity / records by adding to a single existing machine, Non-relational databases can add more machines.
@@ -85,6 +92,7 @@ Data modeling is the process of working out how data will flow - and be stored -
   - "Graph Database"
   - Somehow focuses on relationships between data (not sure what exactly this means yet)
 
+---
 ### CAP Theorem
 The CAP Theorem (or Brewer's Theorem) says that in a partitioned system, there is a trade-off between consistency and availability, where:
 - Consistency = Every read receives the most recent write OR an error
@@ -98,6 +106,7 @@ The PACELC Theorem expanded on CAP by noting that even in the absence of a parti
 
 *Interesting note: Blockchain technology prioritizes availability- by requiring a certain number of 'confirmations', but not waiting for confirmations from all systems*
 
+---
 ### Introduction to Apache Cassandra
 **Glossary**
 - Keyspace = collection of tables
@@ -118,13 +127,50 @@ This system of having data replicated across multiple nodes means that it's not 
   - 'If no new updates are made to a given data item, eventually all accesses to that item will **eventually** return the last updated value (but maybe not **immediately**).
     - Note: So it takes a moment to update all of the nodes? In that case, it's just how long that takes which determines if it's practically cause for concern.
 
+with NoSQL databases (such as Cassandra) it's not possible to query on a completely ad hoc basis.
+Instead of simply creating a table to best represent the data, you have to **create the table to best respond to the queries
+you intend to use**. This is because the table will be distributed across several nodes - so you have to tell Cassandra how
+to split the data so it can respond to your queries well.
+
+Similarly, Cassandra does not (by default at least) allow SELECT statements which do not have a WHERE clause. The reason for disallowing this is to prevent the user from trying to scan too much data - which could bring down the system. There's no reason to NOT have a WHERE clause for most use cases though.
+
+Cassandra organizes data across partitions and **within** partitions by using **composite primary keys**.
+
+---
+#### Partition + Clustering keys in Cassandra
+When defining composite primary keys in Cassandra:
+1. The first attribute named is the **partitioning key** ('year' in the example below). This defines how data will be split across Cassandra nodes
+2. Any attribute(s) listed after the partitioning key is the **clustering key** ('artist' in the example below). This defines how data will be sorted within partitions
+
+```
+CREATE TABLE IF NOT EXISTS music_years
+(year int,
+artist text,
+album text,
+PRIMARY KEY (year, artist, album))
+```
+
+**Note:** It's also possible to create composite partition or clustering keys by using parentheses (e.g., `PRIMARY KEY ((year,artist),album)` will partition data by unique combinations of 'year' and 'artist').
+
+It's quite important to particularly choose **partition keys** carefully because this will have a large impact on the eventual performance of your database.
+Some rules of thumb from [this source](https://opensource.com/article/20/5/apache-cassandra):
+- Aim for partitions of 10mb or less, with an absolute maximum of 100mb
+- Partitions should not be permitted to grow in an unbounded way. Enforce this through partition keys
+  - For example: partitioning session logs by datetime will ensure that individual partitions cannot grow infinitely. However, partitioning session logs by market means that partitions could grow limitlessly.
+
+Some other notes about using WHERE, SORT, or GROUP BY statements:
+- When querying Cassandra, keep in mind that you can only use WHERE, SORT, or GROUP BY statements for attributes which are part of the composite primary key. If you want to use attributes for these statements, they must be part of this composite key.
+- The **order of keys** in the composite key is also important. You can only use attributes for these statements *in the same order you specified them in the key*
+  - For example, in the primary key `PRIMARY KEY (year (artist, album))`, the statement `WHERE year = 1970 AND album = "Greatest Hits"` **WILL NOT WORK**. This is because 'album' is specified 3rd in the composite key. We would need to include 'artist' as part of our filtering statement before we are allowed to use 'album'
+
+[More info on partition, clustering keys](https://stackoverflow.com/questions/24949676/difference-between-partition-key-composite-key-and-clustering-key-in-cassandra)
+
 #### Denormalization in Apache Cassandra
 Because there are no joins in Apache Cassandra, denormalization (whereby you ensure that queries only have to use 1 table) is necessary. **So you need to consider queries first when designing your Apache Cassandra data model**
 
 Udacity Instructor: "One table per query is a good model"
 **Question:** Since we need to make a new table per query, there will be pressure to say "why don't we include *more* columns than we need for X query, just in case... How do we balance between adding ALL of the columns (covering every possible use case) and having so few columns that our tables can't adjust even for minor query changes?
 
-#### Cassandra Query Language (CQL)
 
 **Helpful links**
 - [Keys + Clustering Cols in Cassandra](https://www.bmc.com/blogs/cassandra-clustering-columns-partition-composite-key/)
