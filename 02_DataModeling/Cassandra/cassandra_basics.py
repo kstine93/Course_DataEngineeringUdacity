@@ -27,30 +27,6 @@ except Exception as e:
     print(e)
 
 #Creating Table:
-'''
-NOTE: keep in mind that with NoSQL databases (such as Cassandra) it's not possible to query on a completely ad hoc basis.
-Instead of simply creating a table to best represent the data, you have to create the table to best respond to the queries
-you intend to use. This is because the table will be distributed across several nodes - so you have to tell Cassandra how
-to split the data so it can respond to your queries well.
-In Cassandra, it seems that if we want to group data by certain columns, we have to include those columns as part of the key...
-So, if for example we want to use a 'WHERE year=1970', then year must be part of my primary (composite) key
-'''
-
-#Note: In the situation of a COMPOSITE primary key, the FIRST VALUE is the
-#"partition key" and the OTHER VALUES given are the "clustering keys"
-#You could also include multiple attributes as partition or clustering key
-#by making use of parentheses, e.g:
-'''PRIMARY KEY ((year, artist), album)'''
-#You need to take care when choosing your keys.
-#For PARTITION KEY(S), it's most helpful to choose a column where data is likely to be evenly distributed
-#Year could be a good partition key if we assume that whatever we're measuring is regular across years
-#Product ID could be a BAD partition key, since a new partition is created for every
-#product - so a company with 10,000 products would have 10,000 partitions.
-
-#For CLUSTERING KEY(S), you can only use them to filter data in the SAME ORDER AS THEY'RE USED FOR CLUSTERING
-#So, if you specify your clustering keys as "(year,artist)" then the statement
-#"...WHERE year = 1980 AND artist = 'Bon Jovi'" is CORRECT and the statement
-#"...WHERE artist = 'Bon Jovi'" is WRONG
 
 '''
 music_years
@@ -106,7 +82,8 @@ queries = [
 ]
 for query in queries:
     result = session.execute(query)
-    print(result.all())
+    for row in result:
+        print(row)
 
 session.execute("DROP TABLE music_years")
 session.execute("DROP TABLE music_albums")
