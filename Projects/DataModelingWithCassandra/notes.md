@@ -46,12 +46,20 @@ https://docs.datastax.com/en/dse/5.1/cql/cql/cql_using/whereClustering.html*
 - I don't fully understand this yet. My original queries did indeed not always order data the same in 'INSERT' statements or 'CREATE TABLE' statements, but my queries did work, which suggests that Cassandra was re-arranging the columns as needed (like SQL does). Maybe this is instead a comment on readability (i.e., for other users, it's important that data is ordered the same way). I say this also because the [documentation that the reviewer provided](https://docs.datastax.com/en/dse/5.1/cql/cql/cql_using/whereClustering.html) also provides an example of a CREATE TABLE statement where the order of columns in the PRIMARY KEY doesn't match the order of columns in the table itself. Additionally, none of my original queries produced error statements (not a guarantee though)
 - For now, I am re-ordering the columns so that they are always in the same order. However, it would be nice to learn more about this (whether it's for readability or not) so that I can learn when I can break this rule if needed.
 
+---
+
 ### Query #2 PRIMARY KEY
 >*You have used PRIMARY KEY(userId, sessionId, itemInSession). However, note that this is not an optimal choice of partition key (currently only userId) because sessions belonging to the same user might be in different nodes. This will cause a performance issue if the database is very large. Therefore we should use both userId and sessionId as partition keys so sessions from the same user are stored together. You can do this by PRIMARY KEY((userId, sessionId), itemInSession).*
 
 **Notes:**
 - I don't understand this comment yet. I thought that by partitioning only on userId, I could store all sesssions from a single user on one partition (on one node). I thought that was how Cassandra worked- so that only accessing 1 partition (in this case a single user) would be maximally efficient.
 - The reviewer says `we should use both userId and sessionId as partition keys so sessions from the same user are stored together`. I don't quite understand this. From what I saw of the data, 'sessionId' is already unique to a specific 'userId', so if I partition by 'userId', it should already be the case that all sessions for that user are stored on the same partition. What am I missing here?
+
+**Update:**
+The udacity mentor said I was correct in that data that is in the same partition is also on the same node. However, even though all the data is on the same node/partition, the mentor advised me to still partition based on userId AND sessionId. This will create lots of partitions, but it will help keep the size of each partition down, which seems to be more advantageous.
+[See discussion with Udacity Mentor here.](https://knowledge.udacity.com/questions/879921)
+
+---
 
 ### Query #3 PRIMARY KEY
 >*"The requirement is to get every user name who listened to a particular song. Here the user and the song played would uniquely identify each record.
@@ -63,3 +71,7 @@ What you did will give the expected results, but considering the millions of rec
 >*"This query wants to filter on `song`, but *only* filtering on song might actually be a bad idea:
 >- Songs with the same name can belong to different artists
 >- There are *millions* of songs - so if we only partition only by song, we would have millions of partitions (perhaps too many)"*
+
+**Update:**
+I wasn't wrong- adding artist is not a bad idea (so said the udacity mentor). However, udacity mentor advised me to change the query to only use 'songId' since that's what the original request specified:
+[See discussion with Udacity Mentor here.](https://knowledge.udacity.com/questions/879915)

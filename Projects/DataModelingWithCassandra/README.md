@@ -81,17 +81,20 @@ It would be great if query #2 could also filter only with `sessionId`, since tha
 
 This is a question which needs clarification from Sparkify. However, since we can't get that in this project, we need to proceed under the assumption that we **need** to filter by userId in this second query.
 
+>UPDATE POST-PROJECT:
+The feedback I got from submitting this project recommended that I use both **userId** and **sessionId** as a composite partitioning key (not just **userId**). This will potentially create a lot of partitions, but the reviewers noted that that is preferable to having (potentially) very large partitions which could result from only partitioning on **userId**. The code below reflects this change.
+
 **Table for this query:**
 ```
 CREATE TABLE IF NOT EXISTS songsUser_by_sessionUser
-(sessionId int,
-userId int,
-itemInSession int,
-artist text,
-song text,
-firstName text,
-lastName text,
-PRIMARY KEY (userId, sessionId, itemInSession))
+  (userId int,
+  sessionId int,
+  itemInSession int,
+  artist text,
+  song text,
+  firstName text,
+  lastName text,
+  PRIMARY KEY ((userId, sessionId), itemInSession))
 ```
 
 **SELECT statement for this query:**
@@ -107,16 +110,17 @@ This query wants to filter on `song`, but *only* filtering on song might actuall
 
 A solution to the above points is to instead partition **based on artist** - and insist that analysts specify for which artist they want to organize song data on. The table and query below reflect this change.
 
+>UPDATE POST-PROJECT:
+The feedback I got from reviewers did acknowledge that using **artistId** might be preferable. However, they also noted that since the query doesn't specify artist at all, we need to assume in this instance that the analysts **do not care which artist made the song**. I admit I still don't see the use case for this, and I suspect it's a poorly-created query, but I am reverting the code back so that artist is no longer taken into account. The code below reflects this change.
 
 **Table for this query:**
 ```
 CREATE TABLE IF NOT EXISTS users_by_song
-(userId int,
-firstName text,
-lastName text,
-song text,
-artist text,
-PRIMARY KEY (artist, song, userId))
+  (song text,
+  userId int,
+  firstName text,
+  lastName text,
+  PRIMARY KEY (song, userId))
 ```
 
 **SELECT statement for this query:**
