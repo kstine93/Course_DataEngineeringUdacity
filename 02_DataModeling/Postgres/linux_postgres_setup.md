@@ -4,6 +4,9 @@
 ### Install
 `sudo apt install postgresql`
 
+### Restarting Postgres
+`sudo service postgresql restart`
+
 ---
 ## Starting / Stopping Server
 ### Start Postgres Server
@@ -49,6 +52,11 @@ postgres@server:~$ `createuser --interactive`
 
 *Note: "Superusers" have lots of access. Don't grant new roles this status without careful consideration*
 
+### Grant access to specific schemas or tables
+`GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO basic_user;`
+
+`GRANT ALL PRIVILEGES ON DATABASE pagila TO basic_user;`
+
 ## Create new Database
 postgres@server:~$ `createdb testdb`
 
@@ -63,3 +71,15 @@ postgres@server:~$ `man createuser`
 
 ### List users & permissions
 postgres=#`\du`
+
+### Force close connections:
+postgres=#
+```
+SELECT
+	pg_terminate_backend(pg_stat_activity.pid)
+FROM
+	pg_stat_activity
+WHERE
+	pg_stat_activity.datname = 'database_name'
+	AND pid <> pg_backend_pid();
+```
