@@ -91,16 +91,51 @@ Independent Data Marts:
 ---
 
 #### Inmon's Corporate Information Factory (CIF)
+<img src="media/Inmons_CIF.png" alt="image" width="800"/>
+
+Inmon's CIF:
+- Starts with an ETL to create an intermediate 3NF data warehouse ("Enterprise Data Warehouse") from data acquisition structures
+- From this Enterprise data warehouse, data marts are created with another ETL (but data marts are coordinated because they are pulling form same data warehouse)
+- This is essentially a balance between Kimball's bus (totally centralized) and the independent data marts (totally de-centralized)
+- Analysts can query all data starting with the Enterprise Data Warehouse, including the data marts
+  - This gives most transparency and flexibility to analysts to choose the data format that works for them (also increases complexity)
+- Data marts are mostly aggregated (no need to have de-aggregated if 3NF database also exists)
 
 ---
 
 #### Hybrid Bus & CIF
+<img src="media/hybrid_bus_and_cif.png" alt="image" width="800"/>
 
-
-
+Hybrid Bus & CIF:
+ - Essentially the CIF model *except* that instead of independent data marts, it uses the shared dimension structure of Kimball's bus
 ---
 
 ### OLAP Cubes
+OLAP cubes are **aggregations of a fact metric on a certain number of dimensions** (e.g., income by city, by brand, by month, etc.). These are essentially cross-tabs from statistics with 2 dimensions. With 3 dimensions (or more), they are represented as *series* of cross-tabs.
+
+OLAP cubes are popular for easily communicating results to business users.
+
+<img src="media/olap_cube.png" alt="image" width="400"/>
+
+You can also perform additional analyses on OLAP cubes such as:
+- **Rolling Up**
+  - taking a lower-level dimension (e.g., month) and combining it into a higher-level dimension (e.g., year)
+- **Drilling Down**
+  - Opposite of rolling up (e.g., year -> month)
+- **Slicing**
+  - Taking a N-dimension OLAP cube and choosing to only look at certain values of a certain dimension (e.g., dimension == month, but let's look only at March; effectively removes a dimension)
+- **Dicing**
+  - For one or more dimensions of the OLAP cube, *restrict* the range of values (let's look at movie revenue for March-April and for cities L.A. and N.Y.C.; effectively makes a sub-cube)
+
+OLAP cubes as a data structure therefore need to be able to access *the most granular* ("atomic") data, so that drilling down arbitrarily on different dimensions is possible.
+
+---
+
+>**IMPORTANT**
+In many SQL languages, there is a built-in functionality to create OLAP cubes!
+`GROUP BY CUBE(movie,city,day)`
+This will make one pass through the data and aggregate all *possible* combinations of the specified dimensions.
+Providing this 'cube' to business users can speed up analysis (where the alternative is providing the raw dataset for any ad hoc query)
 
 ---
 
