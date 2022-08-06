@@ -137,7 +137,51 @@ In many SQL languages, there is a built-in functionality to create OLAP cubes!
 This will make one pass through the data and aggregate all *possible* combinations of the specified dimensions.
 Providing this 'cube' to business users can speed up analysis (where the alternative is providing the raw dataset for any ad hoc query)
 
+How do we then **serve** these OLAP cubes to users?
+1. We **pre-aggregate** the OLAP cubes and save them on a special-purpose non-relational database (Multi-dimensional OLAP; MOLAP)
+   1. Often involves using a dedicated OLAP server to serve these data
+2. Compute the OLAP cubes **on the fly** from existing relational databases where the dimensional model of data resides (ROLAP)
+   1. More popular currently
+
+
+#### Making accessible ROLAP cubes with columnar storage
+Note: We can make ROLAP more efficient by transforming our data to create a new, columnar table extension
+
+- Instructor is using Postgres with an extension [cstore_fdw](https://citusdata.github.io/cstore_fdw/)
+
+```
+-- Load extension 1st time after install.
+CREATE EXTENSION cstore_fdw;
+
+-- create server object
+CREATE SERVER cstore_server FOREIGN DATA WRAPPER cstore_fdw;
+
+-- create foreign table (foreign tables saved in a different format)
+CREATE FOREIGN TABLE my_table
+(
+  customer_id TEXT,
+  review_date DATE,
+  review_rating INTEGER,
+  review_votes INTEGER,
+  product_id CHAR(10),
+  product_title TEXT,
+  similar_product_ids CHAR(10)[]
+)
+
+-- Changing server options (might only be necessary if we're loading data from zipped files, as the instructor did)
+SERVER cstore_server OPTIONS(compression 'pglz');
+```
+
+Note: When the instructor compared the time needed to process the table above vs. the same table made in the normal postgres way, the columnar-style table above was about 27% faster.
+
+>Question: I learned from another Postgres training that we can create different types of indexes to speed up query performance as well. Is it better to use that or move to columnar storage?
+> I personally like using Postgres' native functionalities rather than depending on an open-source package which might be harder to depend on.
+
 ---
 
-### DWH storage technology
+### Recommended further reading:
+
+- [The Data Warehouse Toolkit: The Complete Guide to Dimensional Modeling (Kimball)](https://www.amazon.com/Data-Warehouse-Toolkit-Complete-Dimensional/dp/0471200247)
+- [Building the Data Warehouse (Inmon)](https://www.amazon.com/Building-Data-Warehouse-W-Inmon/dp/0764599445)
+- [Building a Data Warehouse: With Examples in SQL Server (Rainardi)](https://www.amazon.com/Building-Data-Warehouse-Examples-Experts/dp/1590599314)
 
