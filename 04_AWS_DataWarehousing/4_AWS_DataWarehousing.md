@@ -15,4 +15,9 @@ It's a scalable network of servers to manage and process data.
   - Web UI console
   - Software development kits (SDKs)
     - **Note: SDKs provide tools, libraries, documentation, examples, etc. to form the basis of new application development**
-  - 
+
+Note: The "AWS Toolkit" in VS code is an SDK to connect and interact with AWS services.
+  
+### AWS Costs
+- Leaving services running on AWS (even unused ones) incurs costs. **Be careful about turning AWS services off - don't leave AWS without doing this.**
+
