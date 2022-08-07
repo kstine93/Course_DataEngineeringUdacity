@@ -75,3 +75,22 @@ The only thing I was able to find was a JSON-level description of the permission
 7. Select if you want bucket encryption
 8. Open advanced settings
    1. Select if you want object lock
+
+## Create Postgres Database
+1. Navigate to RDS (Relational Database Service)
+2. Select "Create Database"
+3. Select "Standard Create"
+4. Select Engine (Postgres)
+5. Select Template (Free Tier)
+6. Give name for DB instance
+7. set Username and password
+8. Set configuration of instance
+   1. What does "DB Instance Class" mean? i.e., DB server?
+9. Choose storage system (e.g., use SSD drives or something else)
+10. Choose size of storage (min. 20GiB)
+11. Choose auto-scaling of storage (how much can DB grow?)
+12. Connectivity
+    1.  Choose default VPC (Again, when would I choose another??)
+    2.  Allow public access (again, how could I make this more specific in the future?)
+    3.  Choose port (5432 is Postgres default)
+    4.  
