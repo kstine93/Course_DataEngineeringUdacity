@@ -93,4 +93,3 @@ The only thing I was able to find was a JSON-level description of the permission
     1.  Choose default VPC (Again, when would I choose another??)
     2.  Allow public access (again, how could I make this more specific in the future?)
     3.  Choose port (5432 is Postgres default)
-    4.  
