@@ -57,11 +57,44 @@ Redshift and other massively-parallel processing (MPP) databases can utilize mul
 
 >Note: I think this is similar to how Apache Spark works - partitioning queries over multiple worker nodes.
 
+When using Redshift, you also choose what type of **nodes** that you want to use. These range in terms of power (CPU, memory) and storage - with some nodes favoring storage over power and vice-versa:
+
+<img src="media/redshift_nodes.png" alt="image" width="800"/>
+
 ---
 
 ### General ETL concepts
+1. For very basic database transformations, we could do something like the following, which is basically just creating a new table on the same database.
+```
+SELECT fact1, fact2
+INTO newFactTable
+FROM oldTable
+WHERE oldTable.id <> null
+GROUP BY oldTable.date
+```
+However, this only works for transformations which (a) want the result on the SAME database (unlikely) and (b) which don't require substantial transformation of the data between the old and new tables.
+
+The code above **is** an ETL - just a very basic one. And we can think of ETLs basically like APIs, with an additional 'transformation' piece within (i.e., we are trying to get 2 different databases, possibly running different RDBMS to talk to each other).
+
+So the issue with getting RDBMS to talk to each other is that (a) most SQL dialects don't always support data migration functions, (b) if we bind ETL functions to storage, then it can be more difficult to centralize and coordinate ETL activities (e.g., if we have ~10 data sources and they're all pushing data to a central database)
+
+So a solution to this is an 'ETL-in-the-middle'- where we have a dedicated ETL system existing between 2 databases that is optimized for read-write operations and data transformation work and which can speak the languages of the source and the destination.
+In the image below, for example, a central ETL server has both mySQL and Postgresql clients so that it can read data from mySQL, store as CSVs, and then insert these records into Postgresql.
+
+<img src="media/sql2sql_etl.png" alt="image" width="700"/>
+
+AWS is interesting as a cloud computing provider because it not only provides standalone services such as Redshift or S3, but it ALSO provides coordination and scheduling of the interactions of those resources. For example, we can schedule a RDS instance in AWS to push all of its files to an S3 bucket. Then, we can schedule our Redshift instance to pull any and all files from that bucket as they come in. So in this way, AWS can actually supply most or all of the extract and load functionalities of an ETL.
+However, if you did need something more complex, you could always spin up an EC2 instance to run a custom ETL.
+
+<img src="media/dwh_example_aws.png" alt="image" width="700"/>
+
+Note: In the image above, there are 2 ways illustrated to load the BI apps - directly from Redshift (large at-once aggregation, could be slow) or from pre-loaded OLAP cubes stored somewhere in an RDBMS (or in memory) for more storage costs but faster reaction times.
+
+---
 
 ### ETL for Redshift
+
+
 
 ### Building a Redshift cluster - Part 1 - Logistics
 
