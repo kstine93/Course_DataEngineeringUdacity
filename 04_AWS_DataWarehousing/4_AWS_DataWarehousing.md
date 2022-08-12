@@ -93,6 +93,39 @@ Note: In the image above, there are 2 ways illustrated to load the BI apps - dir
 ---
 
 ### ETL for Redshift
+To transfer data from an S3 storage to Redshift, we could use the `COPY` command (note that looping with `INSERT` would also work, but would be extremely slow; COPY can work in bulk).
+
+If the file to be copied is quite large, you would want to break it into multiple files, which allows **the files to be processed in parallel**.
+Ingesting in parallel happens by default if:
+- The files have a common prefix or
+- You have manifest file naming the files which go together
+
+Other tricks:
+1. It's a good idea to *compress* data files before putting them in S3 / ingesting them to S3 (Redshift can decompress)
+2. Better to make sure all of your files are in the same AWS region (having files across multiple regions can slow things down)
+
+Example of using **prefix** to copy multiple files (run from Redshift):
+```
+COPY ticket_data FROM 's3://udacity-labs/tickets/split/my_file_prefix'
+CREDENTIALS 'aws_iam_role=arn:aws:iam::4642342423:role/dwhRole'
+gzip DELIMITER ';' REGION 'us-east-1';
+```
+
+Example of using a **manifest file** to copy multiple files (run from Redshift):
+```
+--Manifest file--
+{
+  "entries":[
+    {"url":"s3://udacity-labs/tickets/split/my_file_prefix-000001.gz", "mandatory":true},
+    {"url":"s3://udacity-labs/tickets/split/my_file_prefix-000002.gz", "mandatory":true},
+    {"url":"s3://udacity-labs/tickets/split/my_file_prefix-000003.gz", "mandatory":true},
+    {"url":"s3://udacity-labs/tickets/split/my_file_prefix-000004.gz", "mandatory":true},
+  ]
+}
+COPY ticket_data FROM 's3://udacity-labs/tickets/split/my_file_prefix'
+CREDENTIALS 'aws_iam_role=arn:aws:iam::4642342423:role/dwhRole'
+gzip DELIMITER ';' REGION 'us-east-1';
+```
 
 
 
