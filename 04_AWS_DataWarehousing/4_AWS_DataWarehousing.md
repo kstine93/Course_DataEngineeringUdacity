@@ -127,9 +127,59 @@ CREDENTIALS 'aws_iam_role=arn:aws:iam::4642342423:role/dwhRole'
 gzip DELIMITER ';' REGION 'us-east-1';
 ```
 
+**Note on data compression for Redshift**
+The optimal compression strategy **differs by data type**. Redshift gives the user control over the compression for each column, but the `COPY` command makes best-effort compression decisions in the absence of user input (and provides output logs to show what compression was done).
+- Question: When exactly does Redshift do this compression? In the COPY  commands used above, the files were already compressed (.gz)
 
+
+**Note on using EC2 instead of S3 for ETL to Redshift:**
+As noted above, we can set up a basic extract-load pipeline simply using S3 as a staging area and taking advantage of AWS infrastructure (which allows these services to talk to each other, schedule jobs without additional user-defined code).
+However, if you need more flexibility (and don't mind additional set-up and maintenance), it is also completely possible to build the ETL on an **EC2 machine** (and use this machine to do additional needed *transformation*). In this case, you could potentially also use S3 as a temporary storage area that the EC2 instance would draw on (or potentially also use storage that EC2 has - not sure how big this is).
+
+- It seems that we can *at least* use RedShift to **pull** data from an EC2 instance ([more info here](https://docs.aws.amazon.com/redshift/latest/dg/copy-parameters-data-source-ssh.html))
+  - is it possible to also just **push** to Redshift from the EC2? That seems more useful if we do transformation and immediately want to offload data to Redshift?
+
+**Getting Data out of Redshift to BI app**
+Option 1: The BI app queries Redshift directly using standard "Open Database Connection" (ODBC) API or "Java Database Connection (JDBC) API
+Option 2: We load aggregated data (e.g., as OLAP cubes) into another (more easily accessible?) RDBMS / other storage.
+
+Note that option #2, when done from Redshift to S3 for example, looks something like this:
+```
+UNLOAD (SELECT * from my_table)
+to "s3://mybucket/olapFolder"
+iam_role "arn:aws:iam:9728942234:role/myRedshiftRole;
+```
+
+---
+
+### Setting up Amazon Services using Infrastructure-As-Code (IAC)
+IAC allows us to write definition files which can be interpreted as instructions for setting up environments & resources.
+AWS allows us to write this code and deploy it using:
+- Command-line interface
+  - This involves creating BASH scripts to give commands to the AWS CLI
+- AWS Software development kit (SDK)
+  - This allows us to write code in Python, Java, Node, C++, etc. as a way to design and deploy AWS infrastructure.
+- Amazon Cloud Formation
+  - JSON (or Yaml?) description of objects and permissions
+  - This can be a nice feature because this only works if everything in the definition file is valid (prevents us from deploying some resources but not others)
+  - This is essentially AWS-managed IAC
+
+---
 
 ### Building a Redshift cluster - Part 1 - Logistics
+To start building our Redshift cluster for *testing purposes*:
+1. Head to Redshift service and select "Quick Launch Cluster"
+2. Node type should be `dc2.large` (cheapest type)
+3. Set up **4** nodes
+4. Name cluster identifier as you like
+5. Name database name as you like
+6. Keep port as `5439` (default)
+7. Enter credentials to confirm.
+8. Click 'Launch cluster'
+9. Once cluster is created, click 'Query Editor' to see the SQL editor
+
+However, 
+---
 
 ### Building a Redshift cluster - Part 2 - Infrastructure as Code
 
