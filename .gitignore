@@ -1,5 +1,5 @@
 Projects/DataModelingWithCassandra/event_datafile_new.csv
 Projects/DataModelingWithCassandra/.ipynb_checkpoints
-04_AWS_DataWarehousing/redshift_credentials.txt
-04_AWS_DataWarehousing/awsCredentials_airflow-redshift-user.csv
 04_AWS_DataWarehousing/AWS_RDS_credentials.txt
+04_AWS_DataWarehousing/awsCredentials_airflow-redshift-user.csv
+04_AWS_DataWarehousing/redshift_credentials.cfg
