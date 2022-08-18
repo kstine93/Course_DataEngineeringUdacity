@@ -159,6 +159,7 @@ AWS allows us to write this code and deploy it using:
   - This involves creating BASH scripts to give commands to the AWS CLI
 - AWS Software development kit (SDK)
   - This allows us to write code in Python, Java, Node, C++, etc. as a way to design and deploy AWS infrastructure.
+  - **Note: The Python AWS SDK is called boto3!**
 - Amazon Cloud Formation
   - JSON (or Yaml?) description of objects and permissions
   - This can be a nice feature because this only works if everything in the definition file is valid (prevents us from deploying some resources but not others)
@@ -166,7 +167,7 @@ AWS allows us to write this code and deploy it using:
 
 ---
 
-### Building a Redshift cluster - Part 1 - Logistics
+### Building a Redshift cluster
 To start building our Redshift cluster for *testing purposes*:
 1. Head to Redshift service and select "Quick Launch Cluster"
 2. Node type should be `dc2.large` (cheapest type)
@@ -178,10 +179,50 @@ To start building our Redshift cluster for *testing purposes*:
 8. Click 'Launch cluster'
 9. Once cluster is created, click 'Query Editor' to see the SQL editor
 
-However, 
+### Optimizing Redshift table design
+Redshift tables are partitioned to optimize query performance. However, as opposed to Cassandra, Redshift does this **randomly** unless you specify how to partition.
+Redshift offers two ways to partition:
+- Distribution Style
+- Sorting key
+
 ---
 
-### Building a Redshift cluster - Part 2 - Infrastructure as Code
+#### Distribution Style
+**EVEN Distribution**
+- Splits table evenly across as many CPUs as are available to the cluster- like dealing cards in a card game as more rows are inserted.
+- Works well if there will be NO JOINS- because with JOINs you might have to look up part of a table which lives on another CPU- which can be very resource-intensive.
 
-### Optimizing Redshift table design
+<img src="media/evendistribution_join.png" alt="image" width="700"/>
 
+**ALL Distribution (a.k.a. "Broadcasting")**
+- Not doing any partitioning for some small tables- but copying the small tables across all CPUs to speed up joins.
+  - Can work well for small dimension tables (Where fact tables are still partitioned across CPUs)
+  - Wastes some space, since small tables are replicated completely.
+
+<img src="media/alldistribution_join.png" alt="image" width="700"/>
+
+**AUTO Distribution**
+- Redshift gives you the option to let AWS make the decision whether to do 'ALL' or 'EVEN' strategies for the tables you upload.
+
+**KEY Distribution**
+- Key distribution is similar to the partitioning key on Cassandra- you define which column you want to partition on and then data is partitioned according to unique values in that column.
+- This can lead to data being skewed to be larger on some CPUs than others
+- This can be a good strategy when some dimension tables are too big to be distributed with ALL distribution - you can store fact and dimension table together according to the same foreign key- so that there is never any cross-CPU lookups.
+
+<img src="media/keydistribution_join.png" alt="image" width="700"/>
+
+```
+CREATE TABLE myTable (
+  lo_orderkey integer not null,
+  lo_partkey integer not null distkey,
+  lo_suppkey integer not null
+);
+```
+
+---
+
+#### Sorting Key
+When defining tables, we can choose one column to be a *sorting key* (much like clustering key in Cassandra).
+Upon loading data, rows are sorted according to the key before being partitioned (a.k.a. sliced).
+
+This is especially helpful if you want to ORDER BY or GROUP BY a specific column
