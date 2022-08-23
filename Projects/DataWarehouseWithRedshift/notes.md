@@ -59,35 +59,69 @@
   - `create_tables.py` to create tables in Redshift
   - `etl.py` for loading data from S3 into *STAGING* tables on Redshift, and then process those *STAGING* tables into Redshift *ANALYTICS* tables
     - **Note: Why the 2-step process? Maybe that will become clear based on data (does it make more sense to port through EC2 if we need data manipulation?**
+      - Reason: the JSON files are not structured as our end-state tables need to be. The first step loads the JSON files into tables created to match the JSON structure. The second step uses INSERT SELECT statements to re-arrange the data and put it into end-state tables.
   - `sql_queries.py` for defining SQL statements
   - `README.md` for providing overview of my decisions
+
+**On Staging Tables:**
+The data being used here is the same as used for the Cassandra project - I am loading in log / song files and making a star schema from the data.
+However, in the Cassandra project, I was loading in local files and pushing them to Cassandra - my Python script was the ETL. Here, by contrast, I am loading *remote* files onto a *remote* database - and I have no default ETL platform.
+
+I think the staging tables can be my ETL platform. First, I can load all data into 'Log' and 'Song' tables, since that is how the files are already organized.
+Then, I can INSERT INTO a new Schema that is star-shaped - all using SQL or Redshift commands (no Python)
+
+**Note: How could this setup be tweaked for data streaming? Append to staging tables and then draw from staging to analytics until staging is empty?**
+
+---
+
+### On distribution / sorting strategy
+Dimension Tables = users, time, artist, song
+Fact Table = songplays
+
+Resources:
+- [AWS - choosing best distribution](https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-best-dist-key.html)
+- [AWS - distribution styles](https://docs.aws.amazon.com/redshift/latest/dg/c_choosing_dist_sort.html)
+
+**songplays + time**
+I predict that most of my queries will include the `time` table as a way to filter data. Since most of this filtering will happen on columns *other* than the pure timestamp (e.g., filter according to a certain day, month, year, etc.), a `JOIN` will be required. Since the time table represents the timestamp of *every single user session*, it could grow incredibly large.
+>**Decision: distribute and sort `songplays` and `time` tables according to timestamp key**
+
+**artist**
+Since I am distributing `songplays` alongside `time` already, I won't gain any advantage in query performance from distributing `artists` using a key. The AWS guidelines above state that the ALL distribution is best used for tables which do not change regularly and which are ideally relatively small. Of all the tables I have, `artists` is likely to be the smallest.
+>**Decision: use ALL distribution strategy for `artists`, sort on artist_id (key) for faster lookup**
+
+**song + users**
+Both the `song` and `users` data sets represent information which is likely to be grow frequently over time, and which is quite large- making an ALL distribution strategy unreasonable. However, these tables will be frequently JOINED with the fact table or the `artists` table during queries- making an EVEN distribution strategy also unreasonable.
+>**Decision: use AUTO distribution strategy for `song` and `users` tables, so that Redshift can re-distribute them dynamically as it sees fit.**
+
+---
 
 ## To-dos:
 
 **CREATE TABLES**
-1. Design Schemas for fact + dimension tables
-   1. They've already been designed - I just need to maybe decide on sorting + partitioning keys. Take a look at Cassandra project...
-2. Write `CREATE TABLE` statements
-3. Finish `create_tables.py` to connect to database & create tables
-   1. **Required:** `DROP TABLE IF EXISTS` statements for resetting entire database
-      1. **personal note:** I do not like these statements. I want to know if I'm trying to re-create a database that already exists.
-4. Create IAM role which has S3 read access
-5. Launch Redshift cluster
-6. Add Redshift database + IAM role details to `dwh.cfg` file
-   1. **Note:** Can I use `configparser` package to also create configs? Would be quite convenient.
-7. Create tables in redshift. Query to make sure they were created correctly.
+- [x] Design Schemas for fact + dimension tables
+   - [x] They've already been designed - I just need to maybe decide on sorting + partitioning keys. Take a look at Cassandra project...
+- [x] Write `CREATE TABLE` statements
+- [x] Finish `create_tables.py` to connect to database & create tables
+- [x] **Required:** `DROP TABLE IF EXISTS` statements for resetting entire database
+  - **personal note:** I do not like these statements. I want to know if I'm trying to re-create a database that already exists.
+- [x] Create IAM role which has S3 read access
+- [x] Launch Redshift cluster
+- [x] Add Redshift database + IAM role details to `dwh.cfg` file
+- [x] Create tables in redshift.
+- [ ] Query to make sure tables were created correctly.
 
 **BUILD ETL**
-1. Finish `etl.py` to load data from S3 to Redshift staging tables
-2. Finish `etl.py` to load data from staging tables to analytics tables
-3. Run analytics queries
-4. Delete Redshift cluster
+- [x] Finish `etl.py` to load data from S3 to Redshift staging tables
+- [x] Finish `etl.py` to load data from staging tables to analytics tables
+- [x] Run analytics queries
+- [x] Delete Redshift cluster
 
 **DOCUMENT**
-1. Create `README.md` with:
-   1. Purpose of database in the context of Sparkify as a startup + their analytical goals
-   2. Justify database schema
-   3. [Optional] Provide example queries + results for song play analysis
+- [ ] Create `README.md` with:
+  - [ ] Purpose of database in the context of Sparkify as a startup + their analytical goals
+  - [ ] Justify database schema
+  - [ ] [Optional] Provide example queries + results for song play analysis
 
 ---
 
