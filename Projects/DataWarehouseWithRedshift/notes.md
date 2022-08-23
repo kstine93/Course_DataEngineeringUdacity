@@ -74,28 +74,6 @@ Then, I can INSERT INTO a new Schema that is star-shaped - all using SQL or Reds
 
 ---
 
-### On distribution / sorting strategy
-Dimension Tables = users, time, artist, song
-Fact Table = songplays
-
-Resources:
-- [AWS - choosing best distribution](https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-best-dist-key.html)
-- [AWS - distribution styles](https://docs.aws.amazon.com/redshift/latest/dg/c_choosing_dist_sort.html)
-
-**songplays + time**
-I predict that most of my queries will include the `time` table as a way to filter data. Since most of this filtering will happen on columns *other* than the pure timestamp (e.g., filter according to a certain day, month, year, etc.), a `JOIN` will be required. Since the time table represents the timestamp of *every single user session*, it could grow incredibly large.
->**Decision: distribute and sort `songplays` and `time` tables according to timestamp key**
-
-**artist**
-Since I am distributing `songplays` alongside `time` already, I won't gain any advantage in query performance from distributing `artists` using a key. The AWS guidelines above state that the ALL distribution is best used for tables which do not change regularly and which are ideally relatively small. Of all the tables I have, `artists` is likely to be the smallest.
->**Decision: use ALL distribution strategy for `artists`, sort on artist_id (key) for faster lookup**
-
-**song + users**
-Both the `song` and `users` data sets represent information which is likely to be grow frequently over time, and which is quite large- making an ALL distribution strategy unreasonable. However, these tables will be frequently JOINED with the fact table or the `artists` table during queries- making an EVEN distribution strategy also unreasonable.
->**Decision: use AUTO distribution strategy for `song` and `users` tables, so that Redshift can re-distribute them dynamically as it sees fit.**
-
----
-
 ## To-dos:
 
 **CREATE TABLES**
@@ -109,7 +87,7 @@ Both the `song` and `users` data sets represent information which is likely to b
 - [x] Launch Redshift cluster
 - [x] Add Redshift database + IAM role details to `dwh.cfg` file
 - [x] Create tables in redshift.
-- [ ] Query to make sure tables were created correctly.
+- [x] Query to make sure tables were created correctly.
 
 **BUILD ETL**
 - [x] Finish `etl.py` to load data from S3 to Redshift staging tables
@@ -118,10 +96,10 @@ Both the `song` and `users` data sets represent information which is likely to b
 - [x] Delete Redshift cluster
 
 **DOCUMENT**
-- [ ] Create `README.md` with:
-  - [ ] Purpose of database in the context of Sparkify as a startup + their analytical goals
-  - [ ] Justify database schema
-  - [ ] [Optional] Provide example queries + results for song play analysis
+- [x] Create `README.md` with:
+  - [x] Purpose of database in the context of Sparkify as a startup + their analytical goals
+  - [x] Justify database schema
+  - [x] [Optional] Provide example queries + results for song play analysis
 
 ---
 
