@@ -71,9 +71,70 @@ In contrast, **parallel computing**, CPUs share resources (usually the same memo
 
 ## History of Spark
 
+### Hadoop
+Spark was predated by **Hadoop** - an ecosystem for big data storage and analysis. The major difference between Hadoop and Spark is how they use memory. Hadoop writes intermediate results to disk, while Spark keeps them in memory whenever possible - making Spark faster for many use cases.
+
+**Hadoop MapReduce** is a system for processing and analyzing large data sets in parallel
+
+**Hadoop YARN** is a resource manager that schedules jobs across a cluster. The manager keeps track of what resources are available and assigns them to specific tasks
+
+**Hadoop Distributed File System (HDFS)** is a big data storage system that splits data into chunks and stores them across clusters. **Note that Spark does not have its own file system**
+
+As Hadoop grew, other tools were developed to make Hadoop easier to work with, including:
+
+**Apache Pig** - a SQL-like language that runs on top of MapReduce
+**Apache Hive** - *another* SQL-like interface that runs on top of MapReduce
+
+>Note: When people talk about "Hadoop", they are generally referring to the MapReduce part of Hadoop.
+
+---
+
+### Hadoop MapReduce
+Example:
+If we want to analyse a large dataset with Hadoop, we would want to use MapReduce.
+The first 'preparation' step of using MapReduce is **partitioning** wherein a large data set is 'chunked' into smaller pieces.
+Then, the data goes through 3 steps in MapReduce:
+- Map
+  - The partitions are given out to separate machines which all perform the same operation on the partition (e.g., filtering). Results of the map are written to an intermediate file.
+- Shuffle
+  - Let's imagine that our intermediate results now need to be aggregated somehow. Maybe in our map step we extracted some data from a bigger table, and now we want to aggregate similar records. In the shuffle step, we will re-arrange data across nodes to *prepare* for this aggregation in the 'reduce' step
+- Reduce
+  - Reduce performs the final aggregations on the data - so with the shuffled records from the previous step, we can count, or countUnique, or Sum, etc. Results are then returned to the user.
+
+
+---
+
+### From Hadoop to Spark
+Spark is a big data framework similar to Hadoop. Spark contains libraries for data analysis, machine learning, graphing, and streaming live data.
+Spark is generally *faster* than Hadoop
+
 ---
 
 ## Common Spark Use Cases
+Spark is a big data framework similar to Hadoop. Spark contains libraries for data analysis, machine learning, graphing, and streaming live data.
+
+Spark does not have a native file system, but it does allow ingestion directly from sources like S3.
+
+Additionally, Spark has a data streaming library called [Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html).
+
+> There are other streaming libraries available too, including [Apache Flink](https://flink.apache.org/flink-architecture.html)
+
+> Also see [this Medium article](https://medium.com/@chandanbaranwal/spark-streaming-vs-flink-vs-storm-vs-kafka-streams-vs-samza-choose-your-stream-processing-91ea3f04675b) for a discussion of some of these tools and the tradeoffs.
+
+---
+ 
+## Spark Infrastructure
+Spark - and many other distributed computational systems - use a Manager-Worker hierarchy, where a particular node is responsible for orchestrating the work of all other nodes.
+
+Spark offers 3 different types of 'Managers' that you can work with:
+- Spark's native Standalone Cluster Manager
+- YARN - from the Hadoop framework
+- Mesos - open source manager from UC Berkeley
+
+YARN and Mesos are useful when you are sharing a cluster with a team (apparently), but they won't be covered in this course.
+>To Do: Check out YARN - heard about it at work; probably is pretty relevant.
+
+Additionally, Spark offers a "local" mode of working which allows you to use Spark APIs normally, but all operations are performed on your machine (useful for testing, prototyping)
 
 ---
 
