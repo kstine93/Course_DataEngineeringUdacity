@@ -138,4 +138,91 @@ Additionally, Spark offers a "local" mode of working which allows you to use Spa
 
 ---
 
-## Other Tech in Big Data Ecosystem
+---
+
+# Data Wrangling with Spark
+
+## Functional Programming
+Functional programming gets its name from Algebra - in that a function, given the same input, will always give the same output (no global variables or interactions outside the function).
+
+Functional programming avoids **shared state, mutable data, and side effects**. Each function will not be affected by the state of the rest of the system at a particular time.
+
+Shared state and mutable data mean that the outcome of a particular task is dependent on state of the environment in which it runs. To know how the function works, you need to understand the entire environment and its history.
+
+**Race Conditions**
+Additionally, shared state can introduce **race conditions** - which essentially mean that the correct outcome of a task is dependent on time- and if one process happens to be faster than another, the task can fail.
+
+**Separation**
+Another tenet of functional programming is separation - which is the concept of performing logic separately from creating effects. It's a bit similar to mise en place in the kitchen: you should perform all of your logic first, and then if the logic is successful, perform actions. This can help prevent partial effects from creeping in when your logic fails.
+
+**Conservation**
+Create general, simple functions which can be re-used. Build complex programs out of smaller, atomic pieces.
+
+---
+
+### Maps in functional programming
+The term 'Map' comes from the mathematics concept of 'mapping' inputs to outputs.
+Map functions make a **copy** of the original data and perform functions on it before returning it.
+
+---
+
+### Why does Spark use a functional language?
+Spark is written in **Scala** - which is a **functional** programming language, but there are APIs which allow you to use Spark with Java, R, and Python (the API for using Spark in Python is called **PySpark**).
+
+In this way, functional programming limits the errors that can cripple distributed systems. For example, in distributed systems, it's common for one machine to need to re-start and re-do some calculations. However, when that machine depends on a shared state with all other machines, it means that a single machine going down has now caused complications for ALL machines.
+
+---
+
+## Directed Acyclic Graphs (DAGs) & Lazy Evaluation in Spark
+Before Spark evaluates any part of your program, it creates a DAG in which it maps out the flow of your program and when it will need certain data.
+
+This DAG allows Spark to determine where in your program it can **delay certain processes** (e.g., loading data into memory). Then it creates an execution plan which only performs certain processes *at the last possible moment*. This is **Lazy Evaluation** and it helps prevent Spark from having to maintain certain processes before their needed (which could lead to network timeout, out-of-memory errors, etc.)
+
+---
+
+## Starting with Spark
+The first component of each Spark Program is the **Spark Context**. The Spark context connects the cluster with an application. There are ready-made spark contexts to use, but you can specify custom contexts as well:
+
+```
+from pyspark import SparkContext, SparkConf
+
+#Note: If we run Spark in local mode, we can put the string "local" in lieu of an IP address below
+config = SparkConf().setAppName("name").setMaster("IP Address")
+
+sc = SparkContext(config)
+
+
+```
+
+
+---
+
+### Common Data formats in Big Data
+**CSV**
+Comma-separated value files stores data in row-based tables, where each row represents a record.
+However, there is no agreed-upon standardization for CSV files, so edge cases (like where values contain commas or newline characters) can be handled differently by different programs.
+
+**JSON**
+Javascript object notation files store data in key-value pairs. Seen a lot in headers for HTTP requests, for example.
+
+**HTML**
+Hypertext markup language files contain a huge amount of unique language for defining formatting for text and images to be rendered as a 'page' by a webbrowser.
+
+**XML**
+Extensible markup language is a "generalized" version of HTML where the tags do not have an agreed-upon meaning. Rather, you can define your own tags.
+
+---
+
+### Distributed data storage
+Spark itself does not offer any data storage capabilities, but it can integrate with both Hadoop Distributed File System (HDFS) and Amazon S3.
+>Note: HDFS works by splitting data into 64 or 128-MB blocks and replicating them multiple times across the cluster (to ensure fault-tolerance: if a cluster node fails, data is not lost).
+
+---
+
+## Spark Environment & APIs
+
+---
+
+## RDDs
+
+---
