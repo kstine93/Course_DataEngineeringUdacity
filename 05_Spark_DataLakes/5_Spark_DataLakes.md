@@ -138,6 +138,16 @@ Additionally, Spark offers a "local" mode of working which allows you to use Spa
 
 ---
 
+## Hadoop Distributed File System
+HDFS runs similarly to Spark in that it is essentially a library that can be installed on a computer and which can set up clusters for you.
+
+[Further Reading on HDFS setup](https://www.tutorialspoint.com/hadoop/hadoop_enviornment_setup.htm)
+
+HDFS offers 3 run modes:
+- Standalone (local) mode
+- Pseudo-distributed mode (simulates separate nodes locally)
+- Distributed mode
+
 ---
 
 # Data Wrangling with Spark
