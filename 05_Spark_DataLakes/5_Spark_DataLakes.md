@@ -229,10 +229,50 @@ Spark itself does not offer any data storage capabilities, but it can integrate 
 
 ---
 
-## Spark Environment & APIs
+## Note on Window Functions in Spark
+Window functions in Spark allow **rolling aggregations** as a 'window' moves over the data in a pre-defined order.
+
+For example, let's consider every day in the year 2022. We could make a window function to 'roll' over these days (in order from Jan 1 -> Dec. 31) and aggregate the average temperature over 2 weeks.
+That code would look something like this:
+
+```
+tup = [(2022/1/1, 12.4), (2022/1/2, 11.3), (2022/1/3, 13.2)...]
+df = sqlContext.createDataFrame(tup, ["date", "temp"])
+
+window = Window.orderBy(asc("date")).rangeBetween(-7,7)
+
+df.withColumn("14-day avg temp", func.avg("temp").over(window)).show()
+```
+
+This code orders your data by date, then, starting with Jan. 1, calculates the average temperature across 7 days in the past and 7 days in the future.
+>Note that for Jan. 1st, **there is no past data**, so only 7 days in the future would be included (vice versa for Dec. 31).
+
+### Important Note on range / rows
+You can use either `rangeBetween` or `rowsBetween` to specify how you want data to be collected in the window, **but there is an important, subtle difference**:
+
+`rangeBetween` will create a range from the highest to lowest value of your data, **and will fill in missing rows**.
+`rowsBetween` alternatively, does **NOT** assume a continuous distribution of data and will just order your rows as best it can and then skip over any potentially-missing rows.
+
+Let's imagine in the example above that we are missing data for some days of the year: January 12,13, and 14.
+If the window function tries to calculate the 14-day average temperature for January 10th, it can do one of 2 things:
+- using `rangeBetween` it understands that January 12, 13, and 14 are missing, so it will only collect data for January 11, 15, 16 and 17.
+- using `rowsBetween` it does **not** understand that there is missing data, so it will gather datat for January 11, 15, 16, 17, 18, 19, and 20
+
+> In summary, in cases where data **should be continuous**, then `rangeBetween` is often our best bet. If data might not be continuous, `rowsBetween` is more appropriate.
+
+As another note: `rangeBetween` will include all data for rows **which have the same 'OrderBy' value**. So if we imagine that we had some data from a second weather station in our data set, `rangeBetween` would include all data points where the date is the same, in addition to including the preceding and succeeding 7 days.
+
+**Personal note: I don't understand entirely yet how Spark understands data is missing. I know from testing that it does this with integers (e.g., 1,2, ,4,5), but what about something like timestamps? I would be tempted to not trust spark to make the decision of when to aggregate for me -but rather I would clean my data to understand missing values and then use rowsBetween in most cases**
 
 ---
 
 ## RDDs
+Whether you use Python or SQL to work with data, the data is being parsed and optimized before execution by Spark's query optimizer called "Catalyst".
+This optimized code is then translated into a DAG execution plan to be run on Spark's RDDs system (resilient distributed data sets).
+
+In early versions of Spark (<1.3), RDDs were the only data abstraction that was available to work with. It was only in later versions of Spark when Data Frames were introduced.
+
+Still, there are times when working directly with RDDs might be needed, since they offer more flexibility than the Data Frame APIs, although the code is often harder to write, read, and doesn't benefit from Spark's built-in optimizers.
+
 
 ---
