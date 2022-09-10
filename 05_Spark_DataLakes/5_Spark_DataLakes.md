@@ -273,6 +273,3 @@ This optimized code is then translated into a DAG execution plan to be run on Sp
 In early versions of Spark (<1.3), RDDs were the only data abstraction that was available to work with. It was only in later versions of Spark when Data Frames were introduced.
 
 Still, there are times when working directly with RDDs might be needed, since they offer more flexibility than the Data Frame APIs, although the code is often harder to write, read, and doesn't benefit from Spark's built-in optimizers.
-
-
----
