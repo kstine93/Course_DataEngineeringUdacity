@@ -39,6 +39,16 @@ Additionally, Spark is pre-installed on EMR machines, but not on EC2 machines.
 
 ---
 
+##### Review of AWS instance types
+There are many different types of AWS instances which are optimized for different components:
+- General purpose (ex: m5.large)
+- Compute optimized (ex: c7g.large)
+- Memory optimized (ex: r6a.large)
+- Accelerated computing (ex: for graphics processing, p4d.24xlarge)
+- Storage optimized (ex: Im4gn.large)
+
+---
+
 ## Port forwarding
 
 ---
