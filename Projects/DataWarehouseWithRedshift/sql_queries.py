@@ -26,21 +26,21 @@ staging_events_table_create = ("""
     CREATE TABLE events_staging
     (
         artist              VARCHAR(2000),
-        auth                VARCHAR(30) NOT NULL,
+        auth                VARCHAR(30),
         firstName           VARCHAR(200),
         gender              VARCHAR(2),
         itemInSession       INTEGER,
         lastName            VARCHAR(200),
         length              REAL,
-        level               VARCHAR(20) NOT NULL,
+        level               VARCHAR(20),
         location            VARCHAR(100),
-        method              VARCHAR(14) NOT NULL,
-        page                VARCHAR(60) NOT NULL,
+        method              VARCHAR(14),
+        page                VARCHAR(60),
         registration        BIGINT,
         sessionId           INTEGER,
         song                VARCHAR(2000),
-        status              INTEGER NOT NULL,
-        ts                  BIGINT NOT NULL,
+        status              INTEGER,
+        ts                  BIGINT,
         userAgent           VARCHAR(400),
         userId              INTEGER
     )
@@ -49,16 +49,16 @@ staging_events_table_create = ("""
 staging_songs_table_create = ("""
     CREATE TABLE songs_staging
     (
-        num_songs           INTEGER NOT NULL,
-        artist_id           VARCHAR(50) NOT NULL,
+        num_songs           INTEGER,
+        artist_id           VARCHAR(50),
         artist_latitude     REAL,
         artist_longitude    REAL,
         artist_location     VARCHAR(200),
         artist_name         VARCHAR(2000),
-        song_id             VARCHAR(50) NOT NULL,
-        title               VARCHAR(2000) NOT NULL,
-        duration            REAL NOT NULL,
-        year                INTEGER NOT NULL
+        song_id             VARCHAR(50),
+        title               VARCHAR(2000),
+        duration            REAL,
+        year                INTEGER
     )
 """)
 
@@ -129,7 +129,7 @@ time_table_create = ("""
 staging_events_copy = (f"""\
     COPY events_staging FROM '{config['S3']['LOG_DATA']}'\
     CREDENTIALS 'aws_iam_role={config['IAM_ROLE']['ARN']}'\
-    json 'auto';\
+    json '{config['S3']['LOG_JSONPATH']}';\
 """)
 
 staging_songs_copy = (f"""\
@@ -153,8 +153,13 @@ songplay_table_insert = ("""
         l.userAgent
     FROM events_staging l
     JOIN songs_staging s ON (l.artist = s.artist_name AND l.song = s.title)
+    WHERE l.artist IS NOT NULL AND l.artist != ''
+    AND l.song IS NOT NULL AND l.song != ''
+    AND s.duration IS NOT NULL AND s.duration != ''
 """)
 
+#Note: the 'ROW_NUMBER()' subqueries below are used to emulate Postgres' "DISTINCT ON" operator - ensuring that we can filter
+#all rows and preventing duplicate records based one or more columns
 user_table_insert = ("""
     INSERT INTO users (user_id, firstName, lastName, gender, level)
     SELECT
@@ -163,8 +168,21 @@ user_table_insert = ("""
         lastName,
         gender,
         level
-    FROM events_staging
-    WHERE userId IS NOT NULL
+    FROM (
+        SELECT
+        userId,
+        firstName,
+        lastName,
+        gender,
+        level,
+            ROW_NUMBER() OVER (
+                PARTITION BY userId
+                ORDER BY userId
+            ) AS row_data
+        FROM events_staging
+    ) AS unique_users
+    WHERE unique_users.row_data = 1
+    AND unique_users.userId IS NOT NULL
 """)
 
 song_table_insert = ("""
@@ -175,7 +193,21 @@ song_table_insert = ("""
         artist_id,
         duration,
         year
-    FROM songs_staging
+    FROM (
+        SELECT
+        song_id,
+        title,
+        artist_id,
+        duration,
+        year,
+            ROW_NUMBER() OVER (
+                PARTITION BY song_id
+                ORDER BY song_id
+            ) AS row_data
+        FROM songs_staging
+    ) AS unique_songs
+    WHERE unique_songs.row_data = 1
+    AND unique_songs.song_id IS NOT NULL
 """)
 
 artist_table_insert = ("""
@@ -186,13 +218,27 @@ artist_table_insert = ("""
         artist_latitude,
         artist_longitude,
         artist_location
-    FROM songs_staging
+    FROM (
+        SELECT
+        artist_id,
+        artist_name,
+        artist_latitude,
+        artist_longitude,
+        artist_location,
+            ROW_NUMBER() OVER (
+                PARTITION BY artist_id
+                ORDER BY artist_id
+            ) AS row_data
+        FROM songs_staging
+    ) AS unique_artists
+    WHERE unique_artists.row_data = 1
+    AND unique_artists.artist_id IS NOT NULL
 """)
 
 time_table_insert = ("""
     INSERT INTO time (start_time,hour,day,week,month,year,weekday)
     WITH converted_ts AS (
-        SELECT TIMESTAMP 'epoch' + ts * INTERVAL '0.001 seconds' AS ts
+        SELECT DISTINCT TIMESTAMP 'epoch' + ts * INTERVAL '0.001 seconds' AS ts
         FROM events_staging
     )
     SELECT

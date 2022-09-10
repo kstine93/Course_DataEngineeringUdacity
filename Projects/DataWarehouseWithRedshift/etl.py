@@ -4,18 +4,22 @@ from sql_queries import copy_table_queries, insert_table_queries
 
 
 def load_staging_tables(cur, conn):
+    '''Iteration move data from S3 bucket to intermediate tables'''
     for query in copy_table_queries:
         cur.execute(query)
         conn.commit()
 
 
 def insert_tables(cur, conn):
+    '''Iteration to insert data from intermediate tables into production tables'''
     for query in insert_table_queries:
         cur.execute(query)
         conn.commit()
 
 
 def main():
+    '''Primary function; loads configuration details, connects to database and moves data from S3 to intermediate
+    to production tables'''
     config = configparser.ConfigParser()
     config.read('dwh.cfg')
 

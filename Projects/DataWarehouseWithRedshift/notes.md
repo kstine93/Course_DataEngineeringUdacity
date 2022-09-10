@@ -104,3 +104,18 @@ Then, I can INSERT INTO a new Schema that is star-shaped - all using SQL or Reds
 ---
 
 ## Feedback from Reviewer of Project
+
+
+- Please remove NOT NULLs from the staging tables.
+  - "The staging tables should be an exact copy of the data from JSON or CSV files. It is better not to apply any type of constraint or filtering at this stage
+    - **NOTE: But why? I wonder if this is just a convention. Right now I don't see any reason why not filtering at this stage would be any worse than filtering at another stage.**
+- Please use 's3://udacity-dend/log_json_path.json' as JSON format while copying events data. For songs data, the format option JSON 'auto' is ok.
+  - **Note: Ah- ok, so there is another file in the S3 that is used as a template for communicating what the format of the file uploads will be. I've downloaded this for future reference here: `./redshift_project_json_format.json`**
+- Handle duplicates (Use SELECT DISTINCT to filter duplicate entries.)
+  - **NOTE: Good point. Since Redshift does not enforce uniqueness for tables, if I do not enforce it I will get duplicates which would be bad.**
+- Rewrite the songplays_insert query so that the records are filtered based song title, artist name and song duration.
+- Add docstrings to each function in etl.py and create_tables.py
+- Rewrite the songplays_insert so that the records are filtered based song title, artist name and song duration
+- Please note that Redshift does not enforce unique, primary-key, and foreign-key constraints. Even though they are informational only, the query optimizer uses those constraints to generate more efficient query plans.
+  - https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-defining-constraints.html
+  - http://www.sqlhaven.com/amazon-redshift-what-you-need-to-think-before-defining-primary-key/
