@@ -115,7 +115,6 @@ Then, I can INSERT INTO a new Schema that is star-shaped - all using SQL or Reds
   - **NOTE: Good point. Since Redshift does not enforce uniqueness for tables, if I do not enforce it I will get duplicates which would be bad.**
 - Rewrite the songplays_insert query so that the records are filtered based song title, artist name and song duration.
 - Add docstrings to each function in etl.py and create_tables.py
-- Rewrite the songplays_insert so that the records are filtered based song title, artist name and song duration
 - Please note that Redshift does not enforce unique, primary-key, and foreign-key constraints. Even though they are informational only, the query optimizer uses those constraints to generate more efficient query plans.
   - https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-defining-constraints.html
   - http://www.sqlhaven.com/amazon-redshift-what-you-need-to-think-before-defining-primary-key/
