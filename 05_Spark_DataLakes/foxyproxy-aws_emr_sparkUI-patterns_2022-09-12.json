@@ -1,0 +1,47 @@
+{
+  "whitePatterns": [
+    {
+      "title": "ec2 domains at amazonaws.com",
+      "pattern": "*ec2*.amazonaws.com*",
+      "type": 1,
+      "protocols": 1,
+      "active": true
+    },
+    {
+      "title": "ec2 domains with compute subdomain",
+      "pattern": "ec2*.compute*",
+      "type": 1,
+      "protocols": 1,
+      "active": true
+    },
+    {
+      "title": "AWS subdomains of 'compute' starting with 10",
+      "pattern": "*10*.compute*",
+      "type": 1,
+      "protocols": 1,
+      "active": true
+    },
+    {
+      "title": "Subdomains of AWS starting with 10",
+      "pattern": "*10*.amazonaws.com*",
+      "type": 1,
+      "protocols": 1,
+      "active": true
+    },
+    {
+      "title": "AWS subdomains",
+      "pattern": "*.compute.internal*",
+      "type": 1,
+      "protocols": 1,
+      "active": true
+    },
+    {
+      "title": "ec2 subdomains",
+      "pattern": "*ec2.internal*",
+      "type": 1,
+      "protocols": 1,
+      "active": true
+    }
+  ],
+  "blackPatterns": []
+}
