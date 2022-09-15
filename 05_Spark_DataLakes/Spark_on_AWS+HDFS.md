@@ -31,14 +31,6 @@ Additionally, Spark is pre-installed on EMR machines, but not on EC2 machines.
 
 ---
 
-## Set up Spark cluster on AWS
-
----
-
-## EMR on AWS
-
----
-
 ##### Review of AWS instance types
 There are many different types of AWS instances which are optimized for different components:
 - General purpose (ex: m5.large)
@@ -49,16 +41,8 @@ There are many different types of AWS instances which are optimized for differen
 
 ---
 
-## Port forwarding
-
----
-
 ## Hadoop Distributed File System (HDFS) vs. S3
 HDFS uses the MapReduce system as a resource manager to allow the distribution of files across the hard drives within a cluster (after jobs are completed, data is stored again).
 
-
 ---
 
-## Reading & Writing data to HDFS
-
----
