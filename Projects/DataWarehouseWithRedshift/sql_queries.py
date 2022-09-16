@@ -1,3 +1,13 @@
+"""Queries to create tables in Redshift, separated into:
+    - Queries to create STAGING tables
+    - Queries to create PRODUCTION tables
+    - Redshift commands to transfer S3 files to STAGING tables
+    - Queries to move data from STAGING to PRODUCTION tables
+    - Queries to DROP all tables.
+
+Exports queries to be run by accompanying `etl.py` and `create_tables.py` scripts
+
+"""
 
 import configparser
 config = configparser.ConfigParser()
@@ -36,7 +46,7 @@ staging_events_table_create = ("""
         location            VARCHAR(100),
         method              VARCHAR(14),
         page                VARCHAR(60),
-        registration        BIGINT,
+        registration        VARCHAR(24),
         sessionId           INTEGER,
         song                VARCHAR(2000),
         status              INTEGER,
@@ -129,13 +139,19 @@ time_table_create = ("""
 staging_events_copy = (f"""\
     COPY events_staging FROM '{config['S3']['LOG_DATA']}'\
     CREDENTIALS 'aws_iam_role={config['IAM_ROLE']['ARN']}'\
-    json '{config['S3']['LOG_JSONPATH']}';\
+    json '{config['S3']['LOG_JSONPATH']}'\
+    REGION AS '{config['S3']['REGION']}'\
+    EMPTYASNULL\
+    BLANKSASNULL;
 """)
 
 staging_songs_copy = (f"""\
     COPY songs_staging FROM '{config['S3']['SONG_DATA']}'\
     CREDENTIALS 'aws_iam_role={config['IAM_ROLE']['ARN']}'\
-    json 'auto';\
+    json 'auto'\
+    REGION AS '{config['S3']['REGION']}'\
+    EMPTYASNULL\
+    BLANKSASNULL;
 """)
 
 # FINAL TABLES INSERT FROM STAGING
@@ -152,8 +168,12 @@ songplay_table_insert = ("""
         l.location,
         l.userAgent
     FROM events_staging l
-    JOIN songs_staging s ON (l.artist = s.artist_name AND l.song = s.title)
-    WHERE l.artist IS NOT NULL AND l.artist != ''
+    JOIN songs_staging s
+        ON (l.artist = s.artist_name
+        AND l.song = s.title
+        AND l.length = s.duration)
+    WHERE l.page = 'NextSong'
+    AND l.artist IS NOT NULL AND l.artist != ''
     AND l.song IS NOT NULL AND l.song != ''
     AND s.duration IS NOT NULL AND s.duration != ''
 """)
@@ -177,12 +197,12 @@ user_table_insert = ("""
         level,
             ROW_NUMBER() OVER (
                 PARTITION BY userId
-                ORDER BY userId
+                ORDER BY ts DESC
             ) AS row_data
         FROM events_staging
+        WHERE page = 'NextSong'
     ) AS unique_users
     WHERE unique_users.row_data = 1
-    AND unique_users.userId IS NOT NULL
 """)
 
 song_table_insert = ("""
@@ -207,7 +227,6 @@ song_table_insert = ("""
         FROM songs_staging
     ) AS unique_songs
     WHERE unique_songs.row_data = 1
-    AND unique_songs.song_id IS NOT NULL
 """)
 
 artist_table_insert = ("""
@@ -232,7 +251,6 @@ artist_table_insert = ("""
         FROM songs_staging
     ) AS unique_artists
     WHERE unique_artists.row_data = 1
-    AND unique_artists.artist_id IS NOT NULL
 """)
 
 time_table_insert = ("""

@@ -1,4 +1,4 @@
-# 05-Spark & Data Lakes
+# 05-Spark
 _Udacity - Data Engineering Nanodegree_
 
 ## What is Big Data?

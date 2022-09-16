@@ -105,7 +105,7 @@ Then, I can INSERT INTO a new Schema that is star-shaped - all using SQL or Reds
 
 ## Feedback from Reviewer of Project
 
-
+**REVIEW #1**
 - Please remove NOT NULLs from the staging tables.
   - "The staging tables should be an exact copy of the data from JSON or CSV files. It is better not to apply any type of constraint or filtering at this stage
     - **NOTE: But why? I wonder if this is just a convention. Right now I don't see any reason why not filtering at this stage would be any worse than filtering at another stage.**
@@ -118,3 +118,30 @@ Then, I can INSERT INTO a new Schema that is star-shaped - all using SQL or Reds
 - Please note that Redshift does not enforce unique, primary-key, and foreign-key constraints. Even though they are informational only, the query optimizer uses those constraints to generate more efficient query plans.
   - https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-defining-constraints.html
   - http://www.sqlhaven.com/amazon-redshift-what-you-need-to-think-before-defining-primary-key/
+- (minor) Readme file is good, but could be better; see here for more resources on how to write a great 'Readme':
+  - https://meakaakka.medium.com/a-beginners-guide-to-writing-a-kickass-readme-7ac01da88ab3
+  - https://github.com/matiassingers/awesome-readme
+
+
+**REVIEW #2**
+- When accessing S3 buckets, it's recommended that you *always include the region* - in case the buckets don't exist in the default region.
+- I forgot to filter my INSERT INTO SONGPLAYS query for `page = 'NextSong'`
+- (Personal note): Double-check that I only have unique times in the 'times' table
+- The reviewer STILL got duplicate User IDs when testing my project - run the code again and try to fix this issue.
+- When filtering out duplicate user IDs, it would be better to prefer the record with the *more recent timestamp*. Consider editing the INSERT INTO queries so that they prefer records which were made more recently
+- The Registration field is in fact a numeric value, but we would never perform math on these values, so we can instead store them as `VARCHAR` values
+  - Note: I don't know why the reviewer recommended this change; I would agree that we might never perform math on these values, but why not store them as numbers as I originally did? Making the change regardless, if just to pass the next review.
+- **The reviewer has again noted:** "You have used these three columns [song,artist,duration] in your query, but only for their non-emptyness. Please include them in your WHERE clause as well as requested.
+  - **NOTE: I find this feedback very confusing, because those columns are already in my WHERE clause where I check for non-emptiness. Maybe the reviewer is actually saying I need to JOIN only where those values match?**
+    - This idea taken from here: https://knowledge.udacity.com/questions/779023
+- Use `WHERE page = 'NextSong'` when inserting into users table, since only NextSong records even have a userId
+- (minor) consider using Google-style docstrings in your functions, since this is more standardized + can allow for automatic documentation-writing using the 'Sphinx' module
+  - [Google Docstrings Examples](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
+  - [Sphinx Module](https://pypi.org/project/Sphinx/)
+
+**NEXT STEPS**
+[x] I have made the above changes. Double-check the changes
+[x] Run code again to create Redshift tables
+[x] Check for uniqueness of songs, artists and users
+[x] Check songplays table, to make sure I have a lot of data still (had new JOIN clause)
+5. Re-submit
