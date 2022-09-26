@@ -86,13 +86,31 @@ We ingest directly to S3- which is effectively our Data Lake. Then, we can offer
 
 ---
 
+**Setup**
+If we want to run our Data Lake on S3, but provide EMR with Spark as an option for further processing and analysis, we can create an EMR notebook and have the notebook create a cluster for you (note: the notebook is saved in S3):
+
+<img src="./media/EMRnotebook.png" width=800px>
+
+This allows us to interactively use the EMR cluster, whereas before when uploading python scripts directly to EMR via SSH, the process was not interactive.
+
+---
+
 #### Amazon Athena with S3
 
 We ingest directly to S3- which is effectively our Data Lake. Then, we can offer Amazon Athena for others to use in pulling, transforming, and re-saving data to S3.
 
-Amazon Athena is **essentially a cluster of Lambda instances**. Lambdas can be more cost-effective than EC2 (and certainly more cost-effective than EMR) since you pay by runtime of the code you input rather than the uptime of an entire machine.
+Amazon Athena is **a way to query S3 files directly using SQL**.
 
-**NOTE:** What might be downsides of this approach vs. EMR (or Databricks on EC2)?
-- Maybe Athena is less configurable? (can you run Spark on Athena for big data jobs?)
-- What's the difference in configurability between Athena and Databricks (as 2 cluster and code management tools)
+---
 
+**Setup**
+If we have our data already in S3, we can actually task the 'AWS Glue Crawler' to iteratively scan our S3 file structure and create a schema out of the raw data files it finds there.
+After it's done, you should be able to write SQL to query your S3 files!
+
+<img src="./media/AWSathena.png" width=800px>
+
+---
+
+## Extra Resources
+
+- See [This file](https://docs.aws.amazon.com/athena/latest/ug/athena-ug.pdf) for AWS' recommendations on when to use EMR  vs. Athena.
