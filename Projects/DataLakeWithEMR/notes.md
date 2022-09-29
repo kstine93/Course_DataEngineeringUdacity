@@ -74,6 +74,13 @@ Note these guidlines on writing to S3:
 - Songs table files are partitioned by year and then artist.
 - Time table files are partitioned by year and month.
 - Songplays table files are partitioned by year and month.
+
+**Tables + Sources**
+- Artists = song
+- Songs = song
+- Users = **log**
+- Time = **log**
+- Songplays = **log** AND song
 ---
 
 ## To-dos:
