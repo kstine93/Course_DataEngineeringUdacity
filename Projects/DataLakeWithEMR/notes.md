@@ -86,9 +86,9 @@ Note these guidlines on writing to S3:
 ## To-dos:
 
 **ENVIRONMENT SETUP**
-- [ ] Decide how I want to build tables (and in what format the results will be stored)
+- [x] Decide how I want to build tables (and in what format the results will be stored)
   - Question: Should I partition the resulting S3 tables somehow? By date or by name like the source data is?
-- [ ] Set up EMR + Notebook Infrastructre-as-code such that I can run it all via boto3 in a local python notebook
+- [x] Set up EMR + Notebook Infrastructre-as-code such that I can run it all via boto3 in a local python notebook
   - I already have code for EMR setup + breakdown.
   - I can upload my Python notebook to S3
   - Can then execute notebook using [this reference](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr.html#EMR.Client.start_notebook_execution)
@@ -97,25 +97,25 @@ Note these guidlines on writing to S3:
   - Looks like that is a python native package - so yes!
 
 **CREATE TABLES**
-- [ ] Write `CREATE TABLE` statements
+- [x] Write `CREATE TABLE` statements
   - How best to do this? I don't *HAVE* to use SQL, but it might be easiest.
     - Brainstorming: At the core, I need to combine elements of 2 different JSON files, but I need to combine them based on a common key.
     - **IDEA:** What if I read in all log files, created partial tables, then I read in song data separately and add columns to the tables as needed?
       - Might allow me to drop raw log data earlier - saving memory.
 
 **BUILD ETL**
-- [ ] Finish `etl.py` to load data from S3 to EMR
+- [x] Finish `etl.py` to load data from S3 to EMR
   - Needs explicit S3 access via IAM?
   - Should do this as batch? Or streaming?
   - Use concurrent.futures to parallelize? or Spark (network call, so Spark might not be best choice)?
-- [ ] Finish `etl.py` to transform data from JSON to parquet in different files
+- [x] Finish `etl.py` to transform data from JSON to parquet in different files
   - Input will be 2 streams of JSON files, output will be 5 outputs of parquet files
   - Cannot output until all JSON files have been ingested (output requires JOINs)
     - Do some 'tables' only rely on songs or log data? if so, could output those earlier...
-- [ ] Finish `etl.py` to load data from EMR to S3
+- [x] Finish `etl.py` to load data from EMR to S3
   - - Use concurrent.futures to parallelize? or Spark (network call, so Spark might not be best choice)?
-- [ ] Test and **ensure no duplicates!** (see Redshift project for tips)
-- [ ] Write a docstring for each function (see Google style from Redshift project)
+- [x] Test and **ensure no duplicates!** (see Redshift project for tips)
+- [x] Write a docstring for each function (see Google style from Redshift project)
 - [ ] Run analytics queries
 - [ ] Delete EMR cluster
 

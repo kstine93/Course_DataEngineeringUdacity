@@ -1,12 +1,4 @@
-# Sparkify Database Setup with Redshift
-
----
-
-**Need to re-write including this info:**
-1. Discuss the purpose of this database in context of the startup, Sparkify, and their analytical goals.
-2. State and justify your schema design and ELT pipeline.
-3. [Optional] Provide example queries and results for song play analysis.
-4. In your readme file, describe other data processing steps you took, like looking for data skewness, malformed data, or Map Reduce techniques. 
+# Sparkify Database Setup with EMR + S3
 
 ---
 
@@ -18,76 +10,36 @@ The combination of these data sets into a single database enables us to display 
 ---
 
 ## How to Run Python Scripts
-1. Run *create_tables.py* **ONCE AND ONLY ONCE**
-   1. This script drops and re-creates all tables. It should only be re-run if that data loss is acceptable.
-2. Run *etl.py* to fill in the tables with song and log data
+1. Running the `EMR_boto3setup.ipynb` notebook (with your own AWS credentials) will set up an EMR cluster in AWS for you
+2. The `etl.py` can then either be uploaded to a Jupyter notebook on the EMR cluster (accessible via AWS web UI) or uploaded and submitted to Spark by SSHing into the cluster with an EMR key pair.
+3. In either case, the etl.py code should be run just once (and will take 1-2 hours for writing results to S3)
 
 ---
 
 ## An explanation of the files in the repository
-- dwh.cfg
-  - Configuration file to store data about how to access redshift cluster
-- redshiftSetup.ipynb
-  - Notebook for setting up Redshift cluster and permissions. **Also for populating dwh.cfg file** and querying tables.
-- create_tables.py
-  - Script to (re-)create Redshift tables
+**Production Files**
+- EMR_boto3Setup.ipynb
+  - Notebook for setting up EMR cluster and permissions.
 - etl.py
-  - Script to populate Redshift tables with log and song data
+  - Script to extract, transform and re-load all data from and into S3
 - README.md
   - This document; description of this application
 
+**Development Files**
+- _testNotebookEMr.ipynb
+  - Notebook holding test code for creating etl.py. Has some additional code for testing if needed.
+- notes.md
+  - Project-planning and note-taking document made while working on this project.
+
 ---
 
-## Justification of Database Schema & ETL pipeline
+## Justification of Database Schema
 The star schema used in this database allows for faster analytical querying at the cost of consistency and storage costs (i.e., data is repeated in multiple places). By contrast, using a 3NF database here would require analytical queries to use many more joins and slow down the process of analysis.
 With 'songplays' as the fact table, we are allowing greater querying power for analyzing session data specifically - which is what Sparkify needs in its analytical goals.
 
-The ETL pipeline used here exists mainly within Redshift. The 'staging tables' set up and populated from S3 allowed us to use SQL 'INSERT INTO ... SELECT' statements to do basic transformation and re-organization of data while transferring data from the staging tables to the production tables. If additional transformation were needed, this might go beyond what SQL could accomplish and require a Python script on an EC2 instance to serve as the ETL.
-
 ---
 
-## Details on Table Distribution Decisions
-Dimension Tables = users, time, artist, song
-Fact Table = songplays
-
-Resources:
-- [AWS - choosing best distribution](https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-best-dist-key.html)
-- [AWS - distribution styles](https://docs.aws.amazon.com/redshift/latest/dg/c_choosing_dist_sort.html)
-
-### songplays + time
-I predict that most of my queries will include the `time` table as a way to filter data. Since most of this filtering will happen on columns *other* than the pure timestamp (e.g., filter according to a certain day, month, year, etc.), a `JOIN` will be required. Since the time table represents the timestamp of *every single user session*, it could grow incredibly large.
->**Decision: distribute and sort `songplays` and `time` tables according to timestamp key**
-
-### artist
-Since I am distributing `songplays` alongside `time` already, I won't gain any advantage in query performance from distributing `artists` using a key. The AWS guidelines above state that the ALL distribution is best used for tables which do not change regularly and which are ideally relatively small. Of all the tables I have, `artists` is likely to be the smallest.
->**Decision: use ALL distribution strategy for `artists`, sort on artist_id (key) for faster lookup**
-
-### song + users
-Both the `song` and `users` data sets represent information which is likely to be grow frequently over time, and which is quite large- making an ALL distribution strategy unreasonable. However, these tables will be frequently JOINED with the fact table or the `artists` table during queries- making an EVEN distribution strategy also unreasonable.
->**Decision: use AUTO distribution strategy for `song` and `users` tables, so that Redshift can re-distribute them dynamically as it sees fit.**
+## Justification of ETL pipeline
+The ETL pipeline I designed in order to limit S3 reading. The original template code suggested writing log data into S3 and then reading it back out in order to populate the 'songplays' table. My code instead *keeps* the log dataframe and passes it as an additional argument to create the songplays table - preventing an extra read from S3.
 
 ---
-
-## Songplay analysis querying
-### Where were users located during their Sparkify sessions on November 30, 2018?
-
-```
-SELECT COUNT(*) freq, location
-FROM songplays JOIN time ON songplays.start_time = time.start_time
-WHERE time.year = 2018 
-AND time.month = 11  
-AND time.day = 30 
-GROUP BY songplays.location 
-ORDER BY freq DESC
-```
-
-### What were the most popular songs (i.e., most played) in Q4, 2018?
-```
-SELECT COUNT(*) freq, songplays.song_id, songs.title 
-FROM songplays JOIN time ON songplays.start_time = time.start_time 
-LEFT JOIN songs on songplays.song_id = songs.song_id 
-WHERE time.year = 2018 
-AND time.month BETWEEN 10 AND 12 
-GROUP BY songplays.song_id, songs.title 
-ORDER BY freq DESC
-```

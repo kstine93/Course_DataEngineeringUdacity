@@ -3,6 +3,7 @@ import os
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import IntegerType, StringType, FloatType, StructType, StructField
+import uuid
 
 #<FOR TESTING>
 aws_path = "/home/rambino/.aws/credentials"
@@ -90,14 +91,16 @@ def process_songplays(spark, song_df, log_df, output_path_prefix):
             song_df.song_id, song_df.artist_id
         )
 
-    songplays_df = songplays_df.withColumn('songplay_id',F.expr("uuid()"))
+    uuid_gen = F.udf(lambda: str(uuid.uuid4()), StringType())
+    songplays_df = songplays_df.withColumn('songplay_id',uuid_gen())
 
     songplays_df \
         .select("songplay_id","ts","userId","level","song_id","artist_id","sessionId","location","userAgent", "year","month") \
         .write \
         .option("header",True) \
         .partitionBy("year","month") \
-        .csv(output_path_prefix + "songplays")   
+        .mode("overwrite") \
+        .parquet(output_path_prefix + "songplays")   
 
 
 def process_song_data(spark, song_schema, input_paths, output_path_prefix):
@@ -131,7 +134,8 @@ def process_song_data(spark, song_schema, input_paths, output_path_prefix):
     songs_table.write \
         .option("header",True) \
         .partitionBy("year","artist_id") \
-        .csv(output_path_prefix + "songs")
+        .mode('overwrite') \
+        .parquet(output_path_prefix + "songs")
 
     # extract columns to create artists table
     artists_table = song_df.select('artist_id','artist_name','artist_location','artist_latitude','artist_longitude')
@@ -143,7 +147,8 @@ def process_song_data(spark, song_schema, input_paths, output_path_prefix):
     artists_table.write \
         .option("header",True) \
         .partitionBy("artist_id") \
-        .csv(output_path_prefix + "artists")
+        .mode('overwrite') \
+        .parquet(output_path_prefix + "artists")
 
     return song_df
 
@@ -170,7 +175,7 @@ def process_log_data(spark, log_schema, input_paths, output_path_prefix):
         .load(input_paths['logs_raw'])
 
     # filter by actions for song plays
-    log_df = log_df.filter("page = 'nextSong'")
+    log_df = log_df.filter("page = 'NextSong'")
 
     # extract columns for users table - filtering out duplicates
     users_table = log_df.select('userId','firstName','lastName','gender','level')
@@ -179,12 +184,16 @@ def process_log_data(spark, log_schema, input_paths, output_path_prefix):
     users_table = users_table \
         .orderBy(F.desc('ts')) \
         .dropDuplicates(['userId'])
+
+    # filter out empty user IDs
+    users_table = users_table.filter("userId != ''")
     
     # write users table to csv files
-    #QUESTION: SHOULD I PARTITION BY ANYTHING HERE? ALL HAVE HIGH CARDINALITY
+    # Note: Not partitioning by any column, since all columns have high cardinality
     users_table.write \
     .option("header",True) \
-    .csv(output_path_prefix + "users")
+    .mode('overwrite') \
+        .parquet(output_path_prefix + "users")
 
     #Parsing epoch time to create date & time information
     log_df = log_df \
@@ -198,12 +207,13 @@ def process_log_data(spark, log_schema, input_paths, output_path_prefix):
 
     # extract columns to create time table
     time_table = log_df.select('ts','hour','day','week','month','year','weekday')
-    
+
     # write time table to csv files partitioned by year and month
     time_table.write \
         .option("header",True) \
         .partitionBy("year","month") \
-        .csv(output_path_prefix + "time")
+        .mode('overwrite') \
+        .parquet(output_path_prefix + "time")
 
     return log_df
 
@@ -213,11 +223,11 @@ def main():
     
     spark = create_S3_spark_session()
 
-    output_path_prefix = "./_out/"#"s3a://rambino-output/"
+    output_path_prefix = "s3a://rambino-output/"
 
     input_paths = {
-        "songs_raw":"s3a://udacity-dend/song_data/A/B",
-        "logs_raw":"s3a://udacity-dend/log_data/2018/11/2018-11-13-events.json"
+        "songs_raw":"s3a://udacity-dend/song_data/*/*/*",
+        "logs_raw":"s3a://udacity-dend/log_data/2018/11"
     }
     
     #Note: song data must be processed first, since its output is necessary for log data tables
@@ -225,6 +235,7 @@ def main():
     log_df = process_log_data(spark, get_log_schema(), input_paths, output_path_prefix)
     process_songplays(spark, song_df, log_df, output_path_prefix)
 
+    spark.stop()
 
 if __name__ == "__main__":
     main()
