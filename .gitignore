@@ -4,3 +4,4 @@ Projects/DataModelingWithCassandra/.ipynb_checkpoints
 04_AWS_DataWarehousing/awsCredentials_airflow-redshift-user.csv
 04_AWS_DataWarehousing/redshift_credentials.cfg
 Projects/DataLakeWithEMR/_out
+07_Airflow_DataPipelines/docker_airflow/logs
