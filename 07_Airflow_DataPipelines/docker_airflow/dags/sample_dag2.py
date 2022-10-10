@@ -16,7 +16,7 @@ Variable.set('MyVar',var_json)
 
 
 dag = DAG(
-    'dag_3' #Name of the DAG [REQUIRED]
+    'myThirdDag' #Name of the DAG [REQUIRED]
     ,start_date=datetime.now() #Start date of DAG [REQUIRED]
     ,description="testing a first DAG and seeing how it works"
     ,schedule_interval='@monthly'
