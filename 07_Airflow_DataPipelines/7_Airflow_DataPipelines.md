@@ -175,6 +175,30 @@ at the 'ds' variable from the DAG execution)
 
 ---
 
+## Data Lineage
+Data Lineage describes the entire path of how data is created, transformed and stored.
+This could be thought of as a transformation sequence - a list of commands performed on data that take it from A -> B.
+However, rather than *performing* these steps, "Data Lineage" is often recorded to build understanding (and confidence) in data.
+For this reason (also to help communicate with non-programmers) data lineage is often **graphical** as it is in DAG graphs.
+
+---
+
+## Good Scheduling Practices
+Regularly recurring pipelines which ingest data should aim to ingest only all data since the last run. For example, a weekly-run
+dag should probably process only (new) data from the past week. This is where getting the 'Context' like in `sample_dag3.py`
+is helpful.
+
+Also, the **size** of the data can help us understand how often to run our pipelines. Maybe if we don't want our DAGs running for
+hours, we need to process data more frequently (and in smaller chunks).
+
+Another useful feature of Airflow is that **DAGs can have end dates**. This is nifty because it lets us set up sunsets for
+older pipelines and have the newer pipelines start immediately afterwards - no manual work required!
+
+>Note: If you remove the historical logs of DAG runs, that can trigger Airflow to **RE-RUN (BACKFILL) YOUR DAGS** because it thinks
+that these DAGs never ran!! **Be careful when clearing old DAG log data**
+
+---
+
 ## Other Airflow resources:
 - Cool repo in which DAGS are specified to *maintain Airflow* (e.g., deleting old logs once per week, etc.)
   - https://github.com/teamclairvoyant/airflow-maintenance-dags
