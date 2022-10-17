@@ -17,6 +17,7 @@ It also offers monitoring tools for visualising and evaluating the status of the
 With Airflow you can specify DAGs in languages like Python and run on schedules or external triggers. It has native integrations with Spark, Hadoop, Presto, AWS, and other tools (and offers development tools for creating more integrations).
 
 To that point: **it's not a good idea to run any heavy code with Airflow - rather, Airflow should TRIGGER other tools** such as Spark or Redshift - which can do the heavy lifting.
+This is because Airflow workers are not working on distributed systems, so they are limited to the memory and processing power on the machine Airflow is running on.
 
 **Question:** If a task in a DAG is simply triggering another script (like a webhook might) - how does the task then know that the other script has been completed and that subsequent tasks can start?
 
@@ -194,9 +195,75 @@ hours, we need to process data more frequently (and in smaller chunks).
 Another useful feature of Airflow is that **DAGs can have end dates**. This is nifty because it lets us set up sunsets for
 older pipelines and have the newer pipelines start immediately afterwards - no manual work required!
 
->Note: If you remove the historical logs of DAG runs, that can trigger Airflow to **RE-RUN (BACKFILL) YOUR DAGS** because it thinks
-that these DAGs never ran!! **Be careful when clearing old DAG log data**
+e.g.:
+```python
+dag = DAG(
+  dag_id="end_date_example_dag"
+  ,start_date=datetime.datetime.now()
+  ,end_Date=datetime.datetime.now() + datetime.timedelta(7)
+  #If there is ever a case when we could run >1 DAG at a time (e.g., backfilling), how many concurrent DAGs do we want?
+  #For example, if analyses from May depend on analyses from April, we can't run April + May DAGs concurrently.
+  ,max_active_runs=1
+)
+```
 
+>Note: If you remove the historical logs of DAG runs, that can trigger Airflow to **RE-RUN (BACKFILL) YOUR DAGS** because it thinks that these DAGs never ran!! **Be careful when clearing old DAG log data**
+
+---
+
+## Data Partitioning
+Data partitioning has a host of advantages, including:
+- Limiting the amount of data processed at one single time
+- Allowing greater parallelization of tasks
+- Allowing more robust backups / distribution of data
+
+**Logical Partitioning**: Partitioning based on the information being dealt with. For example, 'customers' should be processed separately from 'employees', even though they may have some fields in common.
+
+**Size Paritioning**: Partitioning based on the size of the data to be processed (e.g., in to 1-GB chunks)
+
+>**How to partition with Airflow?**<br>
+Since Airflow DAGs should be designed to simply *trigger* work on other machines (e.g., give a command to Redshift to copy from S3), Airflow partitioning is really a task of partitioning in other systems.<br>
+For example, if we were to send COPY commands to Redshift to get data from S3, we could tell Airflow to send COPY commands which only reflect partitions of the data (e.g., "COPY FROM s3://march" , "COPY FROM s3://april"). So we could 'inject' relevant partitioning details into the commands we send out to other tools with Airflow.<br>
+**NOTE:** This is an argument for making our triggered jobs quite simple - but with a lot of configurable options. Then we can simply configure our DAGs to change our our jobs behave, rather than having to go into each job to make configurations manually.
+---
+
+## DAG Templating
+Airflow has some special operators which allow you to enter context information directly into your DAGs.
+This format looks like this: `{{ execution_date }}`.
+When Airflow runs this Python script, *it will automatically inject the variables into your code*
+
+Let's say we have some SQL which will be run on Redshift to process a specific table. When we run our DAG, we can
+inject partitioning information (e.g., year, data type)
+
+```python
+COPY_SQL = """
+COPY trips
+FROM 's3://test/repo/{year}/{month}'
+ACCESS_KEY_ID 'access_key_here'
+SECRET_ACCESS_KEY 'secret_key_here'
+IGNOREHEADER 1
+DELIMITER ','
+"""
+
+date = datetime({{ execution_date }})
+COPY_SQL.format(date.year, date.month)
+```
+
+This kind of double-curly bracketing seems to be related to the templating engine "Jinja" (also available as a Python module).
+**TODO: Look into Jinja more and see if this is what's going on here or not...**
+[more info on jinja here](https://realpython.com/primer-on-jinja-templating/)
+
+---
+
+## Ways to measure data quality (in Airflow and elsewhere)
+Some common ways to measure data quality are:
+- Data must be a **certain size** (and no larger)
+- Data must be accurate to **some margin of error**
+- Data must arrive within a given timeframe
+- Pipelines must not take too long to run
+- Data must contain all required information and no additional (particularly sensitive) information
+
+Airflow offers **SLAs** to allow the user to specify fail criteria that Airflow can use in monitoring our DAGs and flagging violations.
 ---
 
 ## Other Airflow resources:

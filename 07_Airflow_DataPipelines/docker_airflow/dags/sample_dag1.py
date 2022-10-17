@@ -7,7 +7,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 
 dag = DAG(
-    'myFirstDag' #Name of the DAG [REQUIRED]
+    dag_id='myFirstDag' #Name of the DAG [REQUIRED]
     ,start_date=datetime.now() #Start date of DAG [REQUIRED]
     ,description="testing a first DAG and seeing how it works"
     ,schedule_interval='@monthly'
@@ -33,7 +33,7 @@ greet_task = PythonOperator(
 )
 
 dag2 = DAG(
-    'mySecondDag' #Name of the DAG [REQUIRED]
+    dag_id='mySecondDag' #Name of the DAG [REQUIRED]
     ,start_date=datetime.now()-timedelta(180) #Start date of DAG [REQUIRED]
     ,description="testing a first DAG and seeing how it works"
     ,schedule_interval='@monthly'
