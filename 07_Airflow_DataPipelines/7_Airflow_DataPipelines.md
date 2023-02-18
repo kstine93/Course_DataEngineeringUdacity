@@ -111,7 +111,7 @@ Each connection is required to have a 'type' which tells Airflow how to pass alo
 
 
 
-**Hooks** are high-level code to interface with an external platform and which lets you easily talk with this external platform without using low-level code like an API.
+**Hooks** are high-level code to interface with an external platform and which lets you easily talk with this external platform without using low-level code. **Hooks are basically API wrappers, so if an API exists that is Python-accessible (e.g., an HTTP API), you could write a custom hook based on it**
 
 Hooks integrate with Connections to gather credentials for accessing these various platforms.
 
@@ -264,6 +264,65 @@ Some common ways to measure data quality are:
 - Data must contain all required information and no additional (particularly sensitive) information
 
 Airflow offers **SLAs** to allow the user to specify fail criteria that Airflow can use in monitoring our DAGs and flagging violations.
+
+---
+
+## Extending Airflow with custom plugins, operators
+Airflow is built to be extensible.<br>
+While there are many ways to extend Airflow, the most common types of custom plug-ins are **hooks** and **operators**
+>Note: Making a custom operator / hook would be a great part of my final project...
+
+**Example of custom operator**
+In the Airflow lessons, I've been working on building a data pipeline between S3 and Redshift. This encompasses:
+1. Creating tables
+2. Copying data from S3 to tables
+3. Checking data transfer
+
+We can take these operations and **make custom operators out of them** so that future work which needs to do the same thing can simply re-use our operators, rather than re-defining this same type of pipeline, for example:
+
+<img src="./media/custom_operators_example.png" width=50%>
+<br /><br />
+
+### Note on custom operators + Jinja templating:
+There is a feature often referenced in Airflow documentation called "Jinja templating".
+It seems to be a way we can take environment variables present at runtime and insert them into our code.
+The example below from [this Airflow docs page](https://airflow.apache.org/docs/apache-airflow/stable/howto/custom-operator.html) shows how to implement a custom operator with `template_fields` so that these variables can be used in custom operators:
+```
+class HelloOperator(BaseOperator):
+
+    template_fields: Sequence[str] = ("name",)
+
+    def __init__(self, name: str, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.name = name
+
+    def execute(self, context):
+        message = f"Hello from {self.name}"
+        print(message)
+        return message
+```
+---
+
+```
+with dag:
+    hello_task = HelloOperator(task_id="task_id_1", dag=dag, name="{{ task_instance.task_id }}")
+```
+
+**My questions on this:**
+1. If we use the templating string `{{ task_instance.task_id }}` as the argument to instantiating the class, then I would assume the class itself has no knowledge of of the templating. **Why do we also have to define templating within the class?**
+
+---
+
+## Designing better Airflow task boundaries
+
+---
+
+## Sub-DAGs + re-using DAGs
+
+---
+
+## Monitoring Airflow jobs
+
 ---
 
 ## Other Airflow resources:
