@@ -34,6 +34,9 @@ Except for very small databases, it's not a good idea to use the SAME data struc
 
 > **A data warehouse is a system which retrieves and consolidates data from source systems (operational processes) for the purpose of enabling analysis**
 
+> **NOTE:** Between OLTP and OLAP, OLTP is probably the more time-sensitive service. Since OLTP is 'running the business' - other business-critical services are likely relying on the accuracy of OLTP data. This is something I could keep in mind when focusing on where to optimize or lower latency in a data system (e.g., Spark or Kafka infrastructures might have the most effect on lowering latency in OLTP rather than OLAP processes).
+
+
 ---
 
 ### Recap of dimensional modeling
@@ -59,8 +62,26 @@ Here's an example from the Udacity course of how you could take a 3NF database a
 
 ---
 
+### ETL vs. ELT
+ETL pipelines are more traditional ways to create data pipelines - but involve some inefficiencies.
+Since they are 'in the middle' of the pipeline, transformations are typically happening in a separate infrastructure than either the source or sink data. Having this separate infrastructure also therefore requires that data pass through two network communications: in 'extract' and 'load'.
+
+ELT pipelines solve some of these issues, but can be less flexible than ETL pipelines.
+A very basic ELT pipeline would be a Redshift instance copying data directly from a Postgres database (`select * from ...`), and then the Redshift database creating a new view out of those data with a windowed aggregation.
+Essentially, the 'extract' and 'load' operations simply become one operation, and transformation needs to happen on the sink data system (this is the limitation - if our sink system is only able to support SQL, we're limited in what transformations we can do. However, since we can create full dimensional models from 3NF tables purely using SQL, this is likely enough for most architectures).
+
+ELT pipelines also have a business-level advantage in that **the most likely-to-change component (transformation) happens last**. ELT (or ETL) is a sequence of steps. If transformation changes in an ETL pipeline, the 'load' part might need to happen again. For ELT, since transformation is last, if we need a new schema or new views, that can all happen in the sink infrastructure and no extracting or loading should be needed.
+
+---
 ### Data warehousing (DWH) architecture
-There have been different proposed architectures for data warehouses which have tried to optimize for different things.
+There have been different proposed architectures for data warehouses which have tried to optimize for different things. Generally-speaking though, Data Warehouses have some similar components:
+- Data warehouses should depend on OLTP data - *and not the other way around* (OLTP data is the source of truth)
+- Data warehouses are independent of OLTP systems - completely changing or even deleting a DWH should not impact the regular operations of the business
+  - This is often achieved by separating DWH systems from OLTP systems (i.e., different databases)
+  - Many DWH architectures also make pure 1:1 copies of OLTP data locally - which they then use as a base for further manipulation (another layer of separation from OLTP data)
+
+
+Below are some famous DWH implementations and their trade-offs.
 
 #### Kimball's Bus Architecture
 <img src="media/kimballs_bus_architecture.png" alt="image" width="800"/>

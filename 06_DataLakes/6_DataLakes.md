@@ -61,7 +61,23 @@ In other words, **Data Lakes are ELT, not ETL**.
 
 ### More differences between Data Lakes & Warehouses:
 
+Data Warehouses are built to be highly performant for analysis, but their reliance on the structure of data to optimize analysis falls apart when dealing with unstructured data (i.e., if you're not sure of the structure of your data, you need to be much slower in analyzing it).
+Data Lakes, by contrast, cab be a bit of a 'dumping ground' for all types of data (structured or unstructured). Organization must be enforced at some level to allow analysis, but this can sometimes be inconsistent across data in the lake, leading to the term "data swamp" when this problem effectively renders much of the data unusable.
+
+>**Note:** Since Data Lakes are essentially storage systems, they don't natively support the kinds of ACID transactions that are available in databases (or data warehouses). Therefore, expecting consistency and integrity in Data Lakes is a bad idea (Data Lakes should not be used for OLTP work).
+
 <img src="./media/DataLakeVsWarehouse.png" width=800px>
+
+### Data Lakehouse architecture
+The Data Lakehouse is a specific implementation of a data infrastructure that seeks to incorporate the best parts of data warehouses (organization, performance) with the best parts of data lakes (flexibility of data types and schemas, scalability).
+
+This is (in theory) achieved by implementing database-like rules on top of a data lake architecture (e.g., schema enforcement, possibly even support for ACID). Since this 'governance layer' is custom-made, rules can be determined (maybe even on a data-by-data basis) as to what types of enforcement are reasonable.
+
+>**NOTE:** My previous company used the Data Lake more-or-less like a dumping ground- any team can bring-their-own-S3-bucket and put whatever data they wanted in there - with any organization they wanted. Implementing a Data Lakehouse is maybe just a step beyond this - allowing teams to store data in the lake, but requiring data schemas, READMEs, and other tools to make sure that others can use the data consistently and accurately (this might also be achieved by some sort of schema repository like Collibra?).
+>
+> Much like any data pipeline with structured data, our Data Lakehouse could also consider *degrees of structure enforcement.*. For example, data that is purely 'dumped' with no meta-information or inconsistent structure could be **'bronze'**. From there, if we can create new, cleaner versions of the data, these could be **'silver'** data structures. This could work as an internal set of guideposts for pressuring teams to have higher-quality data (e.g., 'one of our team goals is 90% at-least-silver data'). Still, I wonder if making schemas or at least some information as a prerequisite for just 'bronze' should be enforced.
+
+
 
 
 ---

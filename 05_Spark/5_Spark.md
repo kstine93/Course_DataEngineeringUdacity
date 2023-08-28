@@ -122,7 +122,7 @@ Additionally, Spark has a data streaming library called [Structured Streaming](h
 > Also see [this Medium article](https://medium.com/@chandanbaranwal/spark-streaming-vs-flink-vs-storm-vs-kafka-streams-vs-samza-choose-your-stream-processing-91ea3f04675b) for a discussion of some of these tools and the tradeoffs.
 
 ---
- 
+
 ## Spark Infrastructure
 Spark - and many other distributed computational systems - use a Manager-Worker hierarchy, where a particular node is responsible for orchestrating the work of all other nodes.
 
@@ -170,24 +170,22 @@ Create general, simple functions which can be re-used. Build complex programs ou
 
 ---
 
-### Maps in functional programming
-The term 'Map' comes from the mathematics concept of 'mapping' inputs to outputs.
-Map functions make a **copy** of the original data and perform functions on it before returning it.
-
----
-
 ### Why does Spark use a functional language?
 Spark is written in **Scala** - which is a **functional** programming language, but there are APIs which allow you to use Spark with Java, R, and Python (the API for using Spark in Python is called **PySpark**).
 
 In this way, functional programming limits the errors that can cripple distributed systems. For example, in distributed systems, it's common for one machine to need to re-start and re-do some calculations. However, when that machine depends on a shared state with all other machines, it means that a single machine going down has now caused complications for ALL machines.
+
+>**NOTE:** Functional programming is almost always **idempotent** - meaning that it can be re-run as many times as you like and always produce the same result. This is great for distributed processing - since machines might crash and need to re-run code, there is very little risk of these small duplications having unwanted additional effects on the final result.
 
 ---
 
 ## Directed Acyclic Graphs (DAGs) & Lazy Evaluation in Spark
 Before Spark evaluates any part of your program, it creates a DAG in which it maps out the flow of your program and when it will need certain data.
 
-This DAG allows Spark to determine where in your program it can **delay certain processes** (e.g., loading data into memory). Then it creates an execution plan which only performs certain processes *at the last possible moment*. This is **Lazy Evaluation** and it helps prevent Spark from having to maintain certain processes before their needed (which could lead to network timeout, out-of-memory errors, etc.)
+This DAG allows Spark to determine where in your program it can **delay certain processes** (e.g., loading data into memory). Then it creates an execution plan which only performs certain processes *at the last possible moment*. This is **Lazy Evaluation** and it helps prevent Spark from having to maintain certain processes before they're needed (which could lead to network timeout, out-of-memory errors, etc.)
 
+If we write a piece of spark code with sequential operations (e.g., load data, select, then filter, then aggregate...), these pieces of code *might not be actually run in this order*. Rather, Spark takes this 'declarative' syntax and figures out how to build an execution plan (DAG) to accomplish it.
+This is quite similar to how SQL works - in that your SQL statement might look sequential to you, but it has a very strict order of operations to make it as performant as possible.
 ---
 
 ## Starting with Spark
@@ -266,10 +264,30 @@ As another note: `rangeBetween` will include all data for rows **which have the 
 
 ---
 
-## RDDs
-Whether you use Python or SQL to work with data, the data is being parsed and optimized before execution by Spark's query optimizer called "Catalyst".
+## Resilient Distributed Datasets (RDDs)
+When writing code in Spark, it is important to **avoid using traditional data storage structures - like lists or dictionaries**, since the sheer amount of data you're working with can overload these storage systems. Instead, you should use RDDs (or, more recently, Spark Dataframes). These data structures provide Spark access to your data in a controlled way *without ever loading these data sets entirely into a single machine's memory.*
+
+Whether you use Python or SQL to work with data, the data is being parsed and optimized before execution by Spark's query optimizer called "Catalyst". In this way, **it might not really matter whether you use SQL or Python to describe what you want to happen.**
 This optimized code is then translated into a DAG execution plan to be run on Spark's RDDs system (resilient distributed data sets).
 
 In early versions of Spark (<1.3), RDDs were the only data abstraction that was available to work with. It was only in later versions of Spark when Data Frames were introduced.
 
 Still, there are times when working directly with RDDs might be needed, since they offer more flexibility than the Data Frame APIs, although the code is often harder to write, read, and doesn't benefit from Spark's built-in optimizers.
+
+---
+
+## Common Spark Functions
+
+```python
+log_of_songs = read_from_s3()
+distributed_song_log_rdd = spark.sparkContext.parallelize(log_of_songs)
+distributed_song_log_rdd.map(lambda song: song.lower())
+distributed_song_log.map(convert_song_to_lowercase).collect()
+```
+
+### .Map()
+The term 'Map' comes from the mathematics concept of 'mapping' inputs to outputs.
+Map functions make a **copy** of the original data and perform functions on it before returning it.
+
+### .Parallelize()
+Parallelize distributes a data object across the machines on the Spark cluster.

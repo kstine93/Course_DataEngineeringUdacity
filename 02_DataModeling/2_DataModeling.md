@@ -28,7 +28,7 @@ Data has rules applied to it - the type, length, whether it's writable, etc. Wha
 #### Isolation
 This involves database locking. Isolation ensures that two operations can NOT occur concurrently in a way which could produce an interaction effect (e.g., writing and deleting to a single table concurrently).
 - The interaction effects could be difficult to predict depending on how the DBMS is implemented and what else happening at runtime on the machine. Running the same command twice could therefore produce different results on different machines, SQL implementations, or times if isolation is not enforced.
-  
+
 #### Durability
 Changes made to the system are persistent - there are measures in place (e.g., backups) to ensure that data, once inputted or altered, is not lost arbitrarily.
 
@@ -97,7 +97,7 @@ Data modeling is the process of working out how data will flow - and be stored -
 The CAP Theorem (or Brewer's Theorem) says that in a partitioned system, there is a trade-off between consistency and availability, where:
 - Consistency = Every read receives the most recent write OR an error
 - Availability = Every request receives a non-error response, but it's not guaranteed it's the most recent write
-  
+
 Note: I think this is because partitioned systems that can be reading and writing to multiple copies of the data simultaneously. When a read request comes in, the system can either choose to prioritize **eventual consistency** (i.e., making sure the system is entirely updated) or **availability** (i.e., returning the local value- without waiting for confirmation from the rest of the system that this value is the most up-to-date).
 
 *Note from Udacity instructor: the tradeoff between consistency and availability is most relevant for partitioned (vs. non-partitioned) systems because partitioned systems can experience network failure between nodes. In these situations, the node being queried must decide whether to give errors until the connection is re-established or to give the local values, which may not be consistent.*
@@ -283,3 +283,16 @@ A snowflake schema is an extension of the star schema. Related to the star schem
 
 ### Denormalization
 In relational databases, you can de-normalize the data (as in star schemas) to optimize certain types of querying.
+
+### Document stores
+Document stores - such as MongoDB and Firestore - store literally files of data. These files can contain any text-based information, such as logs, nested JSON, YAML, etc. Files all have keys and are indexed (sometimes according to document metadata to enhance document lookup).
+
+### Graph Databases
+Graph databases - such as Amazon Neptune - store objects that have properties. These properties can describe relationships with *other objects* and objects can have variable schemas. The result is a collection of objects each representing an entity and each with relationships to other objects. This setup prioritizes the relationships between objects rather than aggregations over object properties themselves (like a relational database might).
+
+### Columnar databases
+Columnar databases are still tabular databases, but they store data as columns rather than as rows (maybe like the 'Parquet' files of the database world). These include Google BigTable, Apache Cassandra, AWS Redshift, and many others. The advantage of these systems is that extraction of singular columns of data for analysis is very fast - since they require fewer I/O operations and reduces the amount of disk data necessary to load [according to AWS](https://aws.amazon.com/nosql/columnar/)
+
+### Key-value stores
+Key-value stores like AWS DynamoDB store data as keys and then 'blobs' of data attached to those keys as values.
+They are intended for applications that *only ever use the primary key to look up a record* [according to AWS](https://aws.amazon.com/nosql/key-value/) - such as a web application that needs to find sessions based on their keys. Schemas are defined per-item so they can be highly flexible.
