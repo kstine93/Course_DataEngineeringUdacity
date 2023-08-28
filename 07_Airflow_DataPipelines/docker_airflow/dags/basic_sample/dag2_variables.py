@@ -43,7 +43,7 @@ farewell_task = PythonOperator(
 
 complete_task = PythonOperator(
     task_id = "complete_task",
-    python_callable=lambda x: logging.info("We're Done!")
+    python_callable=lambda: logging.info("We're Done!")
 )
 
 #We can programmatically denote task dependencies using ">>" and "<< operators"

@@ -21,8 +21,8 @@ class S3ToRedshiftOperator(BaseOperator):
         ACCESS_KEY_ID '{}'
         SECRET_ACCESS_KEY '{}'
         IGNOREHEADER {}
-        DELIMITER
-    '''    
+        DELIMITER '{}'
+    '''
 
 
     def __init__(self,
@@ -35,7 +35,7 @@ class S3ToRedshiftOperator(BaseOperator):
                  s3_ignore_headers: bool = True,
                  *args,
                  **kwargs):
-                 
+
         super().__init__(*args,**kwargs)
         self.redshift_conn_id = redshift_conn_id
         self.redshift_table = redshift_table
