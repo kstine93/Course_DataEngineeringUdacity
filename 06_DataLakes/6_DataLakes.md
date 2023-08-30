@@ -2,6 +2,7 @@
 _Udacity - Data Engineering Nanodegree_
 
 ## Data Lakes - Why?
+Data Lakes are not a specific technology. Rather, they 'come about' when organizations store unstructured (files,images) and/or semi-structured (json, csv) data in a centralized place.
 Data Lakes were born initially of data warehousing technology (and instructor notes that data warehouses are still the best solution for many organizations today).
 
 However, data warehouses are not always the most adept at specific problems that occur more often nowadays including:

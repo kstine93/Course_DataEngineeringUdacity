@@ -291,3 +291,17 @@ Map functions make a **copy** of the original data and perform functions on it b
 
 ### .Parallelize()
 Parallelize distributes a data object across the machines on the Spark cluster.
+
+---
+
+## Spark on AWS
+
+### EMR
+EMR is essentially an EC2 instance that already has Spark installed - so you can simply run code on it without needing to install and configure spark manually.
+
+### Glue
+AWS Glue is a serverless Spark instance with some AWS-add libraries "Glue Context" and "Glue Dynamic Frames".
+This is to EMR as Lambda is to EC2 - it's a preconfigured, serverless way to use Spark.
+Relative to EMR, for Glue you just pay for the run time of your jobs- not for the size of the cluster itself.
+
+AWS Glue actually runs Spark on Virtual Private Clouds (VPCs), so to work with Glue, you'll need to configure a VPC and also configure access to a data source (typically S3).
