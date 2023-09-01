@@ -65,14 +65,29 @@ Embrace the Glue.
 1. Open up AWS Glue Studio from the web interface
 2. Select 'Jobs' from the side menu
 3. Create a "Visual with a source and target" job. Specify that "S3" is the source and "S3" is also the target.
-4. Name the job and select the appropriate role
-   1. (see `./Glue_boto3Setup.ipynb` file in this directory for details on the role and policies used for this).
+   1. For both the source and the target, you will need to specify the S3 location to read/write from/to.
+   2. It's also good practice to name the source and target nodes (e.g., "source data" and "cleaned_data")
+   3. Click 'infer schema' from the source node to auto-generate a schema of the stored data. **You can use this in downstream nodes.**
 
 
 ### Setting up a "filter" transformation
+Back in the visual editor, add a 'Transformation' node between the source and target nodes of the type 'Filter'.
+You can now use the GUI to select how you want to filter (e.g., "firstName" + "!=" + "Kevin").
 
+### Finishing the job
+1. Head to 'Job Details'
+2. Name the job and select the appropriate role
+   1. (see `./Glue_boto3Setup.ipynb` file in this directory for details on the role and policies used for this).
+3.  If you're learning, consider *disabling* the job bookmark (this prevents the re-processing of data you've already processed).
+4. Click the 'Run' button
 
 ### Viewing logs & debugging
+1. Click on 'Runs' in the top menu
+2. From here you can see any current job runs.
+3. Click the 'id' link to see more run details. In this screen scroll down to find cloudwatch logs. Choose 'Error logs'
+4. Review the log streams to find more details of the job(s). Note that since we're running Spark, we will have multiple logs (from each machine) for each run.
 
 
-### Generate the Spark script
+### Generate the script
+1. If you so choose, you *can* generate a script based on the DAG you created in the GUI. The caveat is that *it's written with Glue - so it's only runnable on AWS Glue...*
+2. This is however, still useful for version control.
