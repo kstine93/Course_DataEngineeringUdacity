@@ -12,3 +12,5 @@ Projects/DataModelingWithCassandra/.ipynb_checkpoints
 **/__pycache__
 
 **/customer-data.json
+
+*.log
