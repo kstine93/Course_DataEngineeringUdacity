@@ -1,0 +1,16 @@
+[2023-09-19T14:06:37.672+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: udac_example_dag.run_quality_checks.check_num_rows_songplays manual__2023-09-19T14:06:09.753277+00:00 [queued]>
+[2023-09-19T14:06:37.677+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: udac_example_dag.run_quality_checks.check_num_rows_songplays manual__2023-09-19T14:06:09.753277+00:00 [queued]>
+[2023-09-19T14:06:37.677+0000] {taskinstance.py:1361} INFO - Starting attempt 1 of 1
+[2023-09-19T14:06:37.693+0000] {taskinstance.py:1382} INFO - Executing <Task(PostgresCheckNumRowsOperator): run_quality_checks.check_num_rows_songplays> on 2023-09-19 14:06:09.753277+00:00
+[2023-09-19T14:06:37.700+0000] {standard_task_runner.py:57} INFO - Started process 267 to run task
+[2023-09-19T14:06:37.702+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'udac_example_dag', 'run_quality_checks.check_num_rows_songplays', 'manual__2023-09-19T14:06:09.753277+00:00', '--job-id', '137', '--raw', '--subdir', 'DAGS_FOLDER/udac_example_dag.py', '--cfg-path', '/tmp/tmpkfzwoglk']
+[2023-09-19T14:06:37.703+0000] {standard_task_runner.py:85} INFO - Job 137: Subtask run_quality_checks.check_num_rows_songplays
+[2023-09-19T14:06:37.730+0000] {task_command.py:415} INFO - Running <TaskInstance: udac_example_dag.run_quality_checks.check_num_rows_songplays manual__2023-09-19T14:06:09.753277+00:00 [running]> on host 815601b1728a
+[2023-09-19T14:06:37.778+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='kstine' AIRFLOW_CTX_DAG_ID='udac_example_dag' AIRFLOW_CTX_TASK_ID='run_quality_checks.check_num_rows_songplays' AIRFLOW_CTX_EXECUTION_DATE='2023-09-19T14:06:09.753277+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2023-09-19T14:06:09.753277+00:00'
+[2023-09-19T14:06:37.784+0000] {base.py:73} INFO - Using connection ID 'redshift_connection' for task execution.
+[2023-09-19T14:06:39.345+0000] {sql.py:418} INFO - Running statement: SELECT COUNT(*) FROM songplays, parameters: None
+[2023-09-19T14:06:39.931+0000] {sql.py:427} INFO - Rows affected: 1
+[2023-09-19T14:06:40.117+0000] {data_quality.py:53} INFO - PASS: Table songplays has 103180 rows: within '5000 - 10000000' expected range
+[2023-09-19T14:06:40.123+0000] {taskinstance.py:1400} INFO - Marking task as SUCCESS. dag_id=udac_example_dag, task_id=run_quality_checks.check_num_rows_songplays, execution_date=20230919T140609, start_date=20230919T140637, end_date=20230919T140640
+[2023-09-19T14:06:40.161+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 0
+[2023-09-19T14:06:40.173+0000] {taskinstance.py:2784} INFO - 0 downstream tasks scheduled from follow-on schedule check

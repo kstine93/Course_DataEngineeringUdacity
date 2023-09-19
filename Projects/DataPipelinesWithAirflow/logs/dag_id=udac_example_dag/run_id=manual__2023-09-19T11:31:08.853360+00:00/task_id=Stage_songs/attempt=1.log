@@ -1,0 +1,13 @@
+[2023-09-19T11:31:11.635+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: udac_example_dag.Stage_songs manual__2023-09-19T11:31:08.853360+00:00 [queued]>
+[2023-09-19T11:31:11.640+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: udac_example_dag.Stage_songs manual__2023-09-19T11:31:08.853360+00:00 [queued]>
+[2023-09-19T11:31:11.640+0000] {taskinstance.py:1361} INFO - Starting attempt 1 of 4
+[2023-09-19T11:31:11.657+0000] {taskinstance.py:1382} INFO - Executing <Task(LoadFactOperator): Stage_songs> on 2023-09-19 11:31:08.853360+00:00
+[2023-09-19T11:31:11.661+0000] {standard_task_runner.py:57} INFO - Started process 2008 to run task
+[2023-09-19T11:31:11.663+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'udac_example_dag', 'Stage_songs', 'manual__2023-09-19T11:31:08.853360+00:00', '--job-id', '19', '--raw', '--subdir', 'DAGS_FOLDER/udac_example_dag.py', '--cfg-path', '/tmp/tmp1rjwugpg']
+[2023-09-19T11:31:11.665+0000] {standard_task_runner.py:85} INFO - Job 19: Subtask Stage_songs
+[2023-09-19T11:31:11.699+0000] {task_command.py:415} INFO - Running <TaskInstance: udac_example_dag.Stage_songs manual__2023-09-19T11:31:08.853360+00:00 [running]> on host cd9223bba8c3
+[2023-09-19T11:31:11.747+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='kstine' AIRFLOW_CTX_DAG_ID='udac_example_dag' AIRFLOW_CTX_TASK_ID='Stage_songs' AIRFLOW_CTX_EXECUTION_DATE='2023-09-19T11:31:08.853360+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2023-09-19T11:31:08.853360+00:00'
+[2023-09-19T11:31:11.748+0000] {load_fact.py:23} INFO - LoadFactOperator not implemented yet
+[2023-09-19T11:31:11.753+0000] {taskinstance.py:1400} INFO - Marking task as SUCCESS. dag_id=udac_example_dag, task_id=Stage_songs, execution_date=20230919T113108, start_date=20230919T113111, end_date=20230919T113111
+[2023-09-19T11:31:11.794+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 0
+[2023-09-19T11:31:11.810+0000] {taskinstance.py:2784} INFO - 0 downstream tasks scheduled from follow-on schedule check
