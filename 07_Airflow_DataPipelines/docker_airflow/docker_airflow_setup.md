@@ -10,6 +10,9 @@ Download via most recent link here: https://airflow.apache.org/docs/apache-airfl
 Creates admin user for Airflow database - apparently based on info in docker-compose file
 `sudo docker compose up airflow-init`
 
+## Set up AIRFLOW_UID
+Follow these instructions: https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#setting-the-right-airflow-user
+
 ---
 
 ## Start Airflow services

@@ -6350,3 +6350,24 @@ AttributeError: '_TaskGroupFactory' object has no attribute 'update_relative'
 [2023-09-19T14:13:05.514+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:13:05.514+0000] {dag.py:2907} INFO - Sync 1 DAGs
 [2023-09-19T14:13:05.526+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:13:05.526+0000] {dag.py:3677} INFO - Setting next_dagrun for udac_example_dag to 2023-09-19T15:00:00+00:00, run_after=2023-09-19T16:00:00+00:00
 [2023-09-19T14:13:05.544+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/udac_example_dag.py took 0.107 seconds
+[2023-09-19T14:13:36.061+0000] {processor.py:157} INFO - Started process (PID=1808) to work on /opt/airflow/dags/udac_example_dag.py
+[2023-09-19T14:13:36.068+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/udac_example_dag.py for tasks to queue
+[2023-09-19T14:13:36.069+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:13:36.069+0000] {dagbag.py:539} INFO - Filling up the DagBag from /opt/airflow/dags/udac_example_dag.py
+[2023-09-19T14:13:36.076+0000] {processor.py:839} INFO - DAG(s) dict_keys(['udac_example_dag']) retrieved from /opt/airflow/dags/udac_example_dag.py
+[2023-09-19T14:13:36.138+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:13:36.137+0000] {dag.py:2907} INFO - Sync 1 DAGs
+[2023-09-19T14:13:36.150+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:13:36.150+0000] {dag.py:3677} INFO - Setting next_dagrun for udac_example_dag to 2023-09-19T15:00:00+00:00, run_after=2023-09-19T16:00:00+00:00
+[2023-09-19T14:13:36.162+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/udac_example_dag.py took 0.103 seconds
+[2023-09-19T14:14:06.220+0000] {processor.py:157} INFO - Started process (PID=1863) to work on /opt/airflow/dags/udac_example_dag.py
+[2023-09-19T14:14:06.227+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/udac_example_dag.py for tasks to queue
+[2023-09-19T14:14:06.228+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:14:06.228+0000] {dagbag.py:539} INFO - Filling up the DagBag from /opt/airflow/dags/udac_example_dag.py
+[2023-09-19T14:14:06.234+0000] {processor.py:839} INFO - DAG(s) dict_keys(['udac_example_dag']) retrieved from /opt/airflow/dags/udac_example_dag.py
+[2023-09-19T14:14:06.297+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:14:06.297+0000] {dag.py:2907} INFO - Sync 1 DAGs
+[2023-09-19T14:14:06.309+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:14:06.309+0000] {dag.py:3677} INFO - Setting next_dagrun for udac_example_dag to 2023-09-19T15:00:00+00:00, run_after=2023-09-19T16:00:00+00:00
+[2023-09-19T14:14:06.328+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/udac_example_dag.py took 0.109 seconds
+[2023-09-19T14:14:36.562+0000] {processor.py:157} INFO - Started process (PID=1918) to work on /opt/airflow/dags/udac_example_dag.py
+[2023-09-19T14:14:36.569+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/udac_example_dag.py for tasks to queue
+[2023-09-19T14:14:36.571+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:14:36.571+0000] {dagbag.py:539} INFO - Filling up the DagBag from /opt/airflow/dags/udac_example_dag.py
+[2023-09-19T14:14:36.577+0000] {processor.py:839} INFO - DAG(s) dict_keys(['udac_example_dag']) retrieved from /opt/airflow/dags/udac_example_dag.py
+[2023-09-19T14:14:36.674+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:14:36.674+0000] {dag.py:2907} INFO - Sync 1 DAGs
+[2023-09-19T14:14:36.695+0000] {logging_mixin.py:151} INFO - [2023-09-19T14:14:36.695+0000] {dag.py:3677} INFO - Setting next_dagrun for udac_example_dag to 2023-09-19T15:00:00+00:00, run_after=2023-09-19T16:00:00+00:00
+[2023-09-19T14:14:36.720+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/udac_example_dag.py took 0.160 seconds

@@ -83,7 +83,19 @@ This is (in theory) achieved by implementing database-like rules on top of a dat
 > Much like any data pipeline with structured data, our Data Lakehouse could also consider *degrees of structure enforcement.*. For example, data that is purely 'dumped' with no meta-information or inconsistent structure could be **'bronze' (a.k.a. 'raw/landing zone)**. From there, if we can create new, cleaner versions of the data, these could be **'silver' (a.k.a. 'trusted zone')** data structures. From there it could go onward to a **'gold (a.k.a. 'curated') zone** This could work as an internal set of guideposts for pressuring teams to have higher-quality data (e.g., 'one of our team goals is 90% at-least-silver data'). Still, I wonder if making schemas or at least some information as a prerequisite for just 'bronze' should be enforced.
 
 
+---
 
+### Data Privacy on Data Lakes & Lakehouses
+Data Lakes by definition are a dumping ground for data with no prescriptive regulation. As a side effect of this, Data Lakes can often be a hazard for privacy enforcement (i.e., we don't know what potentially-sensitive data is on the Lake, who has access to it, etc.).
+
+There are various ways to handle this, but one good strategy is to create a 'safe zone' on the Data Lake which contains ONLY non-sensitive or anonymized data. If we can create these 'clean' versions of our data - this might suffice for most of our analysis use cases, and then we can deal with access to unique identifiers or truly sensitive data in a more focused way.
+
+One way to implement this 'safe zone' is to build a general guiding process for data scrubbing. This could include things-to-look for like:
+- Have customers opted-in to being processed in this way? (is there a flag in the data representing this?)
+- When were these data last collected and what is the retention period for these data?
+- Does the data contain any identifying information or anything considered highly sensitive (health, financial, contact or location data).
+
+Where possible with data modeling, we can also isolate sensitive information in particular tables (e.g., we have our 'sales' table which is public, but our 'customers' table is private).
 
 ---
 

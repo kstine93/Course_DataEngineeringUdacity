@@ -12,8 +12,8 @@ from airflow.models import Variable
 #-------------------
 
 var_json = {
-    "s3_bucket":"udacity-dend",
-    "s3_prefix":"data-pipelines"
+    "s3_bucket":"glue-kstine-bucket-udacity",
+    "s3_prefix":"Project_GlueSpark/landing"
 }
 
 #Note: It's VERY important to serialize the json - otherwise the dict will be improperly imported as a string

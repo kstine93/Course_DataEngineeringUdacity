@@ -305,3 +305,67 @@ This is to EMR as Lambda is to EC2 - it's a preconfigured, serverless way to use
 Relative to EMR, for Glue you just pay for the run time of your jobs- not for the size of the cluster itself.
 
 AWS Glue actually runs Spark on Virtual Private Clouds (VPCs), so to work with Glue, you'll need to configure a VPC and also configure access to a data source (typically S3).
+
+---
+
+## Spark Structured Streaming
+Spark typically only supports batch processing - not streaming (i.e., it can't process data in real time). However, **Spark Structured Streaming** can.
+
+Spark Streaming can load data from message broker systems (e.g., Kafka) into Spark dataframes (or in AWS, also Glue data frames).
+
+Spark offers an additional API to support this:
+
+```python
+# Regular Spark batch job setup:
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import explode
+from pyspark.sql.functions import split
+
+spark = SparkSession \
+    .builder \
+    .appName("StructuredNetworkWordCount") \
+    .getOrCreate()
+
+
+#----------------------
+# Spark streaming setup:
+# Create DataFrame representing the stream of input lines from connection to localhost:9999
+lines = spark \
+    .readStream \
+    .format("socket") \
+    .option("host", "localhost") \
+    .option("port", 9999) \
+    .load()
+
+# Split the lines into words
+words = lines.select(
+   explode(
+       split(lines.value, " ")
+   ).alias("word")
+)
+
+# Generate running word count
+wordCounts = words.groupBy("word").count()
+
+#----------------------
+# Get output:
+# Start running the query that prints the running counts to the console
+query = wordCounts \
+    .writeStream \
+    .outputMode("complete") \
+    .format("console") \
+    .start()
+
+query.awaitTermination()
+```
+
+Note that the Spark object actually requires the connection URL at creation time - so Spark is handling drawing data from that URL internally.
+
+Spark streaming works because **it knows what you want to do ahead of time.** Then, it can choose what data to keep and what data to discard as it continues to run.
+For example, let's say we set up a Spark streaming script to aggregate the output of a message stream (e.g., get the count of records matching a certain condition).
+Spark Streaming will start processing data as it arrives (on a configurable basis such as every second) and will update in-memory storage with new data. In this case, therefore, we would have an in-memory store showing the count of our desired records, **but the actual data itself WOULD NOT BE SAVED.**
+
+In this way, stream processing is a moving window, it's a pipe diverting or filtering data as it passes, but it does not collect all data (except for maybe the end system or message brokers).
+There is no "ok, all the data is loaded, let's do analysis" and there is no "done" - we simply have the most up-to-date information (as it is in the real world).
+
+[Read more on Spark Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html#overview)
